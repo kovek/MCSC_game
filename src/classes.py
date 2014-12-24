@@ -2,7 +2,7 @@
 import pygame, sys, os
 from pygame.locals import *
 from operator import add
-import numpy
+#import numpy
 import math
 
 screen = None
@@ -74,20 +74,19 @@ def translate(x,y,z):
         [0,0,0,1.0]
     ]
 
-def rotate(x,y):
-    rot_x = [
-        [1.0,0,0,0],
-        [0,math.cos(x),-math.sin(x),0],
-        [0,math.sin(x),math.cos(x),0],
-        [0,0,0,1.0]
-    ]
-    rot_y = [
-        [math.cos(y),0,math.sin(y),0],
-        [0,1.0,0,0],
-        [-math.sin(y),0,math.cos(y),0],
-        [0,0,0,1.0]
-    ]
-    return numpy.dot(rot_x, rot_y)
+#def rotate(x,y):
+ #   rot_x = [
+  #      [1.0,0,0,0],
+   #    [0,math.sin(x),math.cos(x),0],
+    #    [0,0,0,1.0]
+    #]
+    #rot_y = [
+     #   [math.cos(y),0,math.sin(y),0],
+      #  [0,1.0,0,0],
+       # [-math.sin(y),0,math.cos(y),0],
+        #[0,0,0,1.0]
+    #]
+    #return numpy.dot(rot_x, rot_y)
 
 
 fzNear = 0.5
@@ -102,12 +101,12 @@ perspectiveMatrix = [
 ]
 
 def pos_to_2d(position):
-    print position+(1,)
+    #print position+(1,)
     f = translate(0.0,10.0,0.0)
     f = numpy.dot(rotate(1.0, 0), f)
     f = numpy.dot(perspectiveMatrix, f)
     out = numpy.dot(f, list(position+(1,)) )
-    print out
+    #print out
     out2 = (out[0], out[2])
     return out2
 

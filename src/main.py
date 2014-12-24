@@ -6,20 +6,21 @@ import classes
 # set up pygame
 pygame.init()
 pygame.font.init()
-myfont = pygame.font.Font("/Users/macadmin/Library/Fonts/SourceCodePro-Black.ttf", 15)
+COMIC_SANS = os.path.join('..','data', 'comic.ttf')
+myfont = pygame.font.Font(COMIC_SANS, 15)
 
 # set up the window
-screen = pygame.display.set_mode((1440/2, 900), 0, 32)
+screen = pygame.display.set_mode((1440, 900), 0, 32)
 classes.screen = screen
 
-hp_container = pygame.image.load(os.path.join('.', 'data', 'bar_container.png'))
-hp_bar = pygame.image.load(os.path.join('.', 'data', 'hp_bar.png'))
-mana_bar = pygame.image.load(os.path.join('.', 'data', 'mana_bar.png'))
-square = pygame.image.load(os.path.join('.', 'data', 'square.png'))
-enemy_bar_container = pygame.image.load(os.path.join('.', 'data', 'enemy_bar_container.png'))
-enemy_bar = pygame.image.load(os.path.join('.', 'data', 'enemy_bar_fill.png'))
-player_image = pygame.image.load(os.path.join('.', 'data', 'player.png'))
-boss = pygame.image.load(os.path.join('.', 'data', 'boss.png'))
+hp_container = pygame.image.load(os.path.join('..','data', 'bar_container.png'))
+hp_bar = pygame.image.load(os.path.join('..','data', 'hp_bar.png'))
+mana_bar = pygame.image.load(os.path.join('..','data', 'mana_bar.png'))
+square = pygame.image.load(os.path.join('..','data', 'square.png'))
+enemy_bar_container = pygame.image.load(os.path.join('..','data', 'enemy_bar_container.png'))
+enemy_bar = pygame.image.load(os.path.join('..','data', 'enemy_bar_fill.png'))
+player_image = pygame.image.load(os.path.join('..','data', 'player.png'))
+boss = pygame.image.load(os.path.join('..','data', 'boss.png'))
 
 # set up the colors
 BLACK = (0, 0, 0)
