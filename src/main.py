@@ -2,6 +2,7 @@ import pygame, sys, os
 from pygame.locals import *
 from enum import Enum
 import classes
+from classes import twohundredmsloop
 
 # set up pygame
 pygame.init()
@@ -67,6 +68,7 @@ screen.blit(player_image, (300, 600))
 screen.blit(boss, (700, 300))
 
 
+
 # draw the window onto the screen
 pygame.display.update()
 
@@ -80,6 +82,8 @@ state = State.playing
 things_on_screen = [player]
 
 paused = False
+#time_anim = 0
+#time_anim_temp = 0
 
 # run the game loop
 while True:
@@ -88,6 +92,7 @@ while True:
         pass
         # don't move anything
     else:
+        #time_anim_temp=twohundredmsloop(time_anim)
         for thing in things_on_screen:
             thing.tick()
 
