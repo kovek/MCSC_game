@@ -126,6 +126,7 @@ class Player(Being):
         self.time_anim = 0
         self.time_anim_temp = 0
         self.framepos = 0
+        self.frameposjump = 0
         self.position = (50,50,-50)
         self.velocity = (0,0,0)
         self.pressed_keys = []
@@ -160,45 +161,46 @@ class Player(Being):
         if self.time_anim_temp > self.time_anim:
             if self.framepos == 180:
                 self.framepos = 0
+                self.frameposjump = 0
             else:
                 self.framepos = self.framepos+20
+                self.frameposjump = self.frameposjump+20
         else:
             pass
         if self.velocity == (-1,0,1):
-            screen.blit(self.player_image_moving_upleft, pos_to_2d(self.position), (self.framepos,0,20,50) ) #Change this to an animation
+            screen.blit(self.player_image_moving_upleft, pos_to_2d(self.position), (self.framepos,0,20,50) ) 
             screen.blit(self.player_shadow, pos_to_2d( (self.position[0], 0, self.position[2]) ) )    
         elif self.velocity == (1,0,1):
-            screen.blit(self.player_image_moving_upright, pos_to_2d(self.position), (self.framepos,0,20,50) ) #Change this to an animation
+            screen.blit(self.player_image_moving_upright, pos_to_2d(self.position), (self.framepos,0,20,50) )
             screen.blit(self.player_shadow, pos_to_2d( (self.position[0], 0, self.position[2]) ) )
         elif self.velocity == (-1,0,-1):
-            screen.blit(self.player_image_moving_downleft, pos_to_2d(self.position), (self.framepos,0,20,50) ) #Change this to an animation
+            screen.blit(self.player_image_moving_downleft, pos_to_2d(self.position), (self.framepos,0,20,50) )
             screen.blit(self.player_shadow, pos_to_2d( (self.position[0], 0, self.position[2]) ) )
         elif self.velocity == (1,0,-1):
-            screen.blit(self.player_image_moving_downright, pos_to_2d(self.position), (self.framepos,0,20,50) ) #Change this to an animation
+            screen.blit(self.player_image_moving_downright, pos_to_2d(self.position), (self.framepos,0,20,50) )
             screen.blit(self.player_shadow, pos_to_2d( (self.position[0], 0, self.position[2]) ) )
         elif self.velocity == (0,0,1):
-            screen.blit(self.player_image_moving_up, pos_to_2d(self.position), (self.framepos,0,20,50) ) #Change this to an animation
+            screen.blit(self.player_image_moving_up, pos_to_2d(self.position), (self.framepos,0,20,50) ) 
             screen.blit(self.player_shadow, pos_to_2d( (self.position[0], 0, self.position[2]) ) )
         elif self.velocity == (0,0,-1):
-            screen.blit(self.player_image_moving_down, pos_to_2d(self.position), (self.framepos,0,20,50) ) #Change this to an animation
+            screen.blit(self.player_image_moving_down, pos_to_2d(self.position), (self.framepos,0,20,50) ) 
             screen.blit(self.player_shadow, pos_to_2d( (self.position[0], 0, self.position[2]) ) )
         elif self.velocity == (-1,0,0):
-            screen.blit(self.player_image_moving_left, pos_to_2d(self.position), (self.framepos,0,20,50) ) #Change this to an animation
+            screen.blit(self.player_image_moving_left, pos_to_2d(self.position), (self.framepos,0,20,50) ) 
             screen.blit(self.player_shadow, pos_to_2d( (self.position[0], 0, self.position[2]) ) )
         elif self.velocity == (1,0,0):
-            screen.blit(self.player_image_moving_right, pos_to_2d(self.position), (self.framepos,0,20,50) ) #Change this to an animation
+            screen.blit(self.player_image_moving_right, pos_to_2d(self.position), (self.framepos,0,20,50) ) 
             screen.blit(self.player_shadow, pos_to_2d( (self.position[0], 0, self.position[2]) ) )
         elif self.velocity == (0,0,0):
             screen.blit(self.player_image, pos_to_2d(self.position) )
             screen.blit(self.player_shadow, pos_to_2d( (self.position[0], 0, self.position[2]) ) )
         else:
             pass
-        if self.velocity_up != 0:
-            screen.blit(self.player_image_moving_jump, pos_to_2d(self.position), (self.framepos,0,20,50) ) #Change this to an animation
+        if self.jumping == False:
+            self.frameposjump = 0
+        elif self.jumping == True:
+            screen.blit(self.player_image_moving_jump, pos_to_2d(self.position), (self.frameposjump,0,20,50) )
             screen.blit(self.player_shadow, pos_to_2d( (self.position[0], 0, self.position[2]) ) )
-            
-            
-            
         self.time_anim = self.time_anim_temp
         
 
@@ -230,8 +232,8 @@ class Player(Being):
                 pass
 
         if self.jumping:
-            z = self.velocity_up*1 + 1.0/2*(-9.8)*((1/FRAMES_PER_SECOND)**2)
-            self.velocity_up = self.velocity_up -9.8*1/FRAMES_PER_SECOND
+            z = self.velocity_up*1 + 1.0/2*(-6.8)*((1/FRAMES_PER_SECOND)**2) ##WHO NEEDS REALISTIC GRAVITY (g changed to 6.8ms-2 from 9.8 ms-2 for better jump animations)
+            self.velocity_up = self.velocity_up -6.8*1/FRAMES_PER_SECOND ##WHO NEEDS REALISTIC GRAVITY (g changed to 6.8ms-2 from 9.8 ms-2 for better jump animations)
             self.position = tuple(map(add, self.position, (0,z,0)))
         if JUMP_SPEED + self.velocity_up <= 0.0 and self.velocity_up < 0:
             # Here we assume that the only possible height at which the player
