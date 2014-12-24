@@ -27,7 +27,7 @@ class Gui(object):
     def __init__(self):
         pass
 
-class GuiItem(on_screen_image):
+class GuiItem(OnScreenImage):
     def __init__(self):
         pass
 
@@ -41,23 +41,23 @@ class Menu(object):
             # manage the key
         pass
 
-class ContainerOnMenu(on_screen_image):
+class ContainerOnMenu(OnScreenImage):
     def __init__(self):
         pass
 
-class OptionInContainer(on_screen_image):
+class OptionInContainer(OnScreenImage):
     def __init__(self):
         pass
 
-class OnField(on_screen_image):
+class OnField(OnScreenImage):
     def __init__(self):
         pass
 
-class Item(on_field):
+class Item(OnField):
     def __init__(self):
         pass
 
-class Being(on_screen_image):
+class Being(OnScreenImage):
     # Being as in something that moves by itself.
     def __init__(self):
         pass
@@ -111,7 +111,7 @@ def pos_to_2d(position):
     out2 = (out[0], out[2])
     return out2
 
-class Player(being):
+class Player(Being):
     def __init__(self):
         self.position = (50,50,-50)
         self.velocity = (0,0,0)
@@ -170,7 +170,7 @@ class Player(being):
             self.velocity_up = 0
 
 
-class Enemy(being):
+class Enemy(Being):
     def __init__(self):
         pass
 
