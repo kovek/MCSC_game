@@ -7,6 +7,7 @@ import classes
 pygame.init()
 pygame.font.init()
 myfont = pygame.font.Font("/Users/macadmin/Library/Fonts/SourceCodePro-Black.ttf", 15)
+is_online = False
 
 # set up the window
 screen = pygame.display.set_mode((1440/2, 900), 0, 32)
@@ -100,19 +101,20 @@ while True:
             if event.key == K_ESCAPE:
                 # Depending of what is going on, we will do different things.
                 if state == State.playing:
-                    pass
                     # If not online, stop game.
-                        # paused = True
+                    if not is_online:
+                        paused = True
 
-                    # bring up pause menu.
-                        # PauseMenu.show()
+                    classes.PauseMenu.show()
 
                     # put pause menu to focus.
-                        # focus = PauseMenu
+                    focus = classes.PauseMenu
 
-                if state == State.menu or state == State.paused:
+                    state = State.paused
+                elif state == State.menu or state == State.paused:
                     # send the escape event to menu. It will 'go back' if it can. If not, then it will remove the pause menu.
-                    focus.escape_pressed()
+                    if focus.escape_pressed() == "close_menu":
+                        pass
 
         focus.key_event(event)
     pygame.display.update()

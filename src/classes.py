@@ -41,13 +41,59 @@ class Menu(object):
             # manage the key
         pass
 
+menu_tree = {
+    "resume":
+        }
+
+class PauseMenu(Menu):
+    # The menu tree must be a stack
+
+    def __init__(self):
+        # level in the options tree
+        self.level = 0
+        pass
+
+    @classmethod
+    def show(cls):
+
+        pass
+
+    @classmethod
+    def key_event(cls, event):
+        pass
+
+    @classmethod
+    def escape_pressed(cls):
+        if self.level == 0:
+            return "close_menu"
+        else:
+            # Go back the menu tree.
+            return
+
 class ContainerOnMenu(OnScreenImage):
     def __init__(self):
         pass
 
 class OptionInContainer(OnScreenImage):
     def __init__(self):
-        pass
+        self.image = 'somefile'
+        self.corners = [1,2,3,4]
+        self.borders = [1,2,3,4]
+        self.filler = 0
+        self.rules = [
+            lambda x:
+        ]
+        self.height = None # Place height of option here. The parent Menu will need to know it.
+
+    def draw(self, x, y, width):
+        for i in xrange(4):
+            screen.blit(self.corners[i], (x,y) )
+        for i in xrange(4):
+            screen.blit(self.borders[i], (x,y) )
+        #figure_out_height_given_font(font, text, width)
+        screen.blit(self.filler, (x+size_of_corner,y+size_of_corner) )
+
+
 
 class OnField(OnScreenImage):
     def __init__(self):
@@ -89,7 +135,6 @@ def rotate(x,y):
     ]
     return numpy.dot(rot_x, rot_y)
 
-
 fzNear = 0.5
 fzFar = 30.0
 frustumScale = 1.0
@@ -102,12 +147,10 @@ perspectiveMatrix = [
 ]
 
 def pos_to_2d(position):
-    print position+(1,)
     f = translate(0.0,10.0,0.0)
     f = numpy.dot(rotate(1.0, 0), f)
     f = numpy.dot(perspectiveMatrix, f)
     out = numpy.dot(f, list(position+(1,)) )
-    print out
     out2 = (out[0], out[2])
     return out2
 
