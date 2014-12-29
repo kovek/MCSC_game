@@ -245,8 +245,8 @@ class Player(Being):
                 pass
 
         if self.jumping:
-            z = self.velocity_up*1 + 1.0/2*(-6.8)*((1/FRAMES_PER_SECOND)**2) ##WHO NEEDS REALISTIC GRAVITY (g changed to 6.8ms-2 from 9.8 ms-2 for better jump animations)
-            self.velocity_up = self.velocity_up -6.8*1/FRAMES_PER_SECOND ##WHO NEEDS REALISTIC GRAVITY (g changed to 6.8ms-2 from 9.8 ms-2 for better jump animations)
+            z = self.velocity_up*1 + 1.0/2*(-6.8)*((1/FRAMES_PER_SECOND)**2)
+            self.velocity_up = self.velocity_up -6.8*1/FRAMES_PER_SECOND
             self.position = tuple(map(add, self.position, (0,z,0)))
         if JUMP_SPEED + self.velocity_up <= 0.0 and self.velocity_up < 0:
             # Here we assume that the only possible height at which the player
