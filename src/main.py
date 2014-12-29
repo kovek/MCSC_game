@@ -2,7 +2,7 @@ import pygame, sys, os
 from pygame.locals import *
 from enum import Enum
 import classes
-from classes import twohundredmsloop
+from classes import animation_loop
 
 # set up pygame
 pygame.init()
@@ -16,14 +16,13 @@ myfont = pygame.font.Font(COMIC_SANS, 15)
 screen = pygame.display.set_mode((1440, 900), 0, 32)
 classes.screen = screen
 
-hp_container = pygame.image.load(os.path.join('.','data', 'bar_container.png'))
-hp_bar = pygame.image.load(os.path.join('.','data', 'hp_bar.png'))
-mana_bar = pygame.image.load(os.path.join('.','data', 'mana_bar.png'))
-square = pygame.image.load(os.path.join('.','data', 'square.png'))
-enemy_bar_container = pygame.image.load(os.path.join('.','data', 'enemy_bar_container.png'))
-enemy_bar = pygame.image.load(os.path.join('.','data', 'enemy_bar_fill.png'))
-player_image = pygame.image.load(os.path.join('.','data', 'player.png'))
-boss = pygame.image.load(os.path.join('.','data', 'boss.png'))
+hp_container = pygame.image.load(os.path.join('..','data', 'bar_container.png'))
+hp_bar = pygame.image.load(os.path.join('..','data', 'hp_bar.png'))
+mana_bar = pygame.image.load(os.path.join('..','data', 'mana_bar.png'))
+square = pygame.image.load(os.path.join('..','data', 'square.png'))
+enemy_bar_container = pygame.image.load(os.path.join('..','data', 'enemy_bar_container.png'))
+enemy_bar = pygame.image.load(os.path.join('..','data', 'enemy_bar_fill.png'))
+boss = pygame.image.load(os.path.join('..','data', 'boss.png'))
 
 # set up the colors
 BLACK = (0, 0, 0)
@@ -66,7 +65,6 @@ screen.blit(S1, (670, 810))
 screen.blit(S2, (740, 810))
 screen.blit(S3, (810, 810))
 screen.blit(S4, (880, 810))
-screen.blit(player_image, (300, 600))
 screen.blit(boss, (700, 300))
 
 
@@ -84,8 +82,6 @@ state = State.playing
 things_on_screen = [player]
 
 paused = False
-#time_anim = 0
-#time_anim_temp = 0
 
 # run the game loop
 while True:
@@ -94,7 +90,6 @@ while True:
         pass
         # don't move anything
     else:
-        #time_anim_temp=twohundredmsloop(time_anim)
         for thing in things_on_screen:
             thing.tick()
 
