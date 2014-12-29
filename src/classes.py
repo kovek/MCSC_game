@@ -42,10 +42,6 @@ class Menu(object):
             # manage the key
         pass
 
-menu_tree = {
-    "resume":
-        }
-
 class PauseMenu(Menu):
     # The menu tree must be a stack
 
@@ -81,9 +77,6 @@ class OptionInContainer(OnScreenImage):
         self.corners = [1,2,3,4]
         self.borders = [1,2,3,4]
         self.filler = 0
-        self.rules = [
-            lambda x:
-        ]
         self.height = None # Place height of option here. The parent Menu will need to know it.
 
     def draw(self, x, y, width):
@@ -178,17 +171,17 @@ class Player(Being):
             K_s: (0,0,-1),
             K_d: (1,0,0)
         }
-        self.player_image = pygame.image.load(os.path.join('..', 'data', 'player.png'))
-        self.player_shadow = pygame.image.load(os.path.join('..', 'data', 'shadow.png'))
-        self.player_image_moving_up = pygame.image.load(os.path.join('..', 'data', 'w.png'))
-        self.player_image_moving_down = pygame.image.load(os.path.join('..', 'data', 's.png'))
-        self.player_image_moving_left = pygame.image.load(os.path.join('..', 'data', 'a.png'))
-        self.player_image_moving_right = pygame.image.load(os.path.join('..', 'data', 'd.png'))
-        self.player_image_moving_upleft = pygame.image.load(os.path.join('..', 'data', 'wa.png'))
-        self.player_image_moving_upright = pygame.image.load(os.path.join('..', 'data', 'wd.png'))
-        self.player_image_moving_downleft = pygame.image.load(os.path.join('..', 'data', 'sa.png'))
-        self.player_image_moving_downright = pygame.image.load(os.path.join('..', 'data', 'sd.png'))
-        self.player_image_moving_jump = pygame.image.load(os.path.join('..', 'data', 'space.png'))
+        self.player_image = pygame.image.load(os.path.join('.', 'data', 'player.png'))
+        self.player_shadow = pygame.image.load(os.path.join('.', 'data', 'shadow.png'))
+        self.player_image_moving_up = pygame.image.load(os.path.join('.', 'data', 'w.png'))
+        self.player_image_moving_down = pygame.image.load(os.path.join('.', 'data', 's.png'))
+        self.player_image_moving_left = pygame.image.load(os.path.join('.', 'data', 'a.png'))
+        self.player_image_moving_right = pygame.image.load(os.path.join('.', 'data', 'd.png'))
+        self.player_image_moving_upleft = pygame.image.load(os.path.join('.', 'data', 'wa.png'))
+        self.player_image_moving_upright = pygame.image.load(os.path.join('.', 'data', 'wd.png'))
+        self.player_image_moving_downleft = pygame.image.load(os.path.join('.', 'data', 'sa.png'))
+        self.player_image_moving_downright = pygame.image.load(os.path.join('.', 'data', 'sd.png'))
+        self.player_image_moving_jump = pygame.image.load(os.path.join('.', 'data', 'space.png'))
 
         self.jumping = False
         self.velocity_up = 0
