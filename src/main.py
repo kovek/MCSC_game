@@ -9,7 +9,7 @@ pygame.init()
 pygame.font.init()
 
 is_online = False
-COMIC_SANS = os.path.join('.','data', 'comic.ttf')
+COMIC_SANS = os.path.join('..','data', 'comic.ttf')
 myfont = pygame.font.Font(COMIC_SANS, 15)
 
 # set up the window

@@ -33,6 +33,13 @@ online_rooms = []
 game_saves = []
 
 
+#THE LINK
+def play():
+    os.startfile("main.py")
+    pygame.quit()
+    quit()
+    
+
 active_menu = None
 class Menus(gui.Container):
     def activate(self, which_menu):
@@ -83,7 +90,7 @@ class Menus(gui.Container):
             new_button = gui.Button("New Save")
             new_button.connect(CLICK, menus.activate, new_game_menu)
             single_player_menubar.add(new_button)
-            single_player_menubar.add(exit_single_player_button)
+            single_player_menubar2.add(exit_single_player_button)
 
 
 
@@ -167,9 +174,12 @@ exit_single_player_button = gui.Button("Back")
 exit_single_player_button.connect(CLICK, menus.activate, play_menu)
 
 single_player_menubar = gui.VBox(align="center", valign="center", y=0, spacing=20)
-single_player_menubar.add(exit_single_player_button)
+single_player_menubar2 = gui.VBox(align="center", valign="center", y=115, spacing=0)
+single_player_menubar2.add(exit_single_player_button)
 
+single_player_menu.add(single_player_menubar2)
 single_player_menu.add(single_player_menubar)
+single_player_menubar.connect(CLICK,play)
 
 ### Multiplayer
 
@@ -324,10 +334,6 @@ menus.add(mainmenu, # 0
 
 menus.activate(mainmenu)
 
-
-
-
-
 #the_temp = None
 the_temp = gui.Container(width=640, height=480)
 
@@ -339,8 +345,8 @@ while True:
     for event in events:
         if event.type == QUIT:
             pygame.quit()
-            sys.exit()
-
+            quit()
+            
     if active_menu == lan_menu:
         all_lan_rooms = Online.get_lan_rooms()
 
