@@ -1,4 +1,5 @@
 import sys
+import subprocess
 import os
 import yaml
 from enum import Enum
@@ -35,10 +36,14 @@ game_saves = []
 
 #THE LINK
 def play():
-    os.startfile("main.py")
+    if sys.platform == "win32":
+        os.startfile("main.py")
+    else:
+        opener ="python" if sys.platform == "darwin" else "xdg-open"
+        subprocess.call([opener, "main.py"])
     pygame.quit()
     quit()
-    
+
 
 active_menu = None
 class Menus(gui.Container):
@@ -346,7 +351,7 @@ while True:
         if event.type == QUIT:
             pygame.quit()
             quit()
-            
+
     if active_menu == lan_menu:
         all_lan_rooms = Online.get_lan_rooms()
 
