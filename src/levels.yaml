@@ -1,0 +1,10 @@
+levels:
+  1:
+    boss_name: "Robot Ragdoll"
+    boss_sprites: "./data/sprites/bosses/robot_ragdoll.png"
+    level_image: "./data/level_image/training_area.png"
+  2:
+    boss_name: "Mad Scientist"
+    boss_sprites: "./data/sprites/bosses/mad_scientist.png"
+    level_image: "./data/level_image/lab.png"
+

@@ -1,0 +1,19 @@
+saves:
+  - Rick:
+    items:
+      - lightsaber
+      - pistol
+    last_completed_level: 5
+
+  - Bob:
+    items:
+      - goggles
+      - gloves
+      - laser
+    last_completed_level: 2
+
+  - Morty:
+    items:
+      - noise-maker
+      - "pandora box"
+    last_completed_level: 1

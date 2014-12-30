@@ -172,8 +172,8 @@ class Player(Being):
             K_s: (0,0,-1),
             K_d: (1,0,0)
         }
-        self.player_image = pygame.image.load(os.path.join('..', 'data', 'anim.png'))
-        self.player_shadow = pygame.image.load(os.path.join('..', 'data', 'shadow.png'))
+        self.player_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'anim.png'))
+        self.player_shadow = pygame.image.load(os.path.join('..', 'data', 'sprites', 'shadow.png'))
 
         self.jumping = False
         self.velocity_up = 0
