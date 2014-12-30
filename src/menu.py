@@ -49,7 +49,7 @@ class Menus(gui.Container):
                 active_menu = w
 
         if which_menu == single_player_menu:
-            save_file = open(os.path.join('.', 'local', 'saves.yaml'))
+            save_file = open(os.path.join('..', 'local', 'saves.yaml'))
             save_file_map = yaml.safe_load(save_file)
 
             # Clean up
@@ -322,7 +322,7 @@ menus.add(mainmenu, # 0
         replay_menu,
         room_menu) # 11
 
-menus.activate(lan_menu)
+menus.activate(mainmenu)
 
 
 
