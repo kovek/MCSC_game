@@ -4,9 +4,20 @@ from pygame.locals import *
 from operator import add
 import numpy
 import math
+import random
 
+# set up pygame and stuff
 pygame.init()
+pygame.font.init()
+random.seed()
 screen = None
+COMIC_SANS = os.path.join('..','data', 'comic.ttf')
+myfont = pygame.font.Font(COMIC_SANS, 15)
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
 
 FRAMES_PER_SECOND = 500
 MS_PER_FRAME = 200
@@ -258,7 +269,53 @@ class Player(Being):
 
 class Enemy(Being):
     def __init__(self):
-        pass
+        self.gui_item = pygame.image.load(os.path.join('..', 'data', 'sprites', 'bosses', 'boss.png'))
+        self.position_x = random.randint(0,1340)
+        self.position_y = random.randint(0,700)
+    def draw(self,position_x,position_y):
+      screen.blit(self.gui_item, (self.position_x, self.position_y))
+      
+    def tick(self):
+        super(self.__class__, self).tick()
+        self.draw(self.position_x,self.position_y)
+
+class GuiStatic(Being):
+    def __init__(self,image,posx,posy):
+        self.gui_item = pygame.image.load(os.path.join('..', 'data', 'gui', image))
+        self.position_x = posx
+        self.position_y = posy
+    def draw(self,position_x,position_y):
+      screen.blit(self.gui_item, (self.position_x, self.position_y))
+      
+    def tick(self):
+        super(self.__class__, self).tick()
+        self.draw(self.position_x,self.position_y)
+
+class GuiDynamic(Being):
+    def __init__(self,image,posx,posy,size,percent):
+        self.gui_item = pygame.image.load(os.path.join('..', 'data', 'gui', image))
+        self.position_x = posx
+        self.position_y = posy
+        self.size = size
+        self.percentage = percent
+    def draw(self,position_x,position_y):
+      screen.blit(self.gui_item, (self.position_x, self.position_y), (0,0,self.size*self.percentage,46))
+      
+    def tick(self):
+        super(self.__class__, self).tick()
+        self.draw(self.position_x,self.position_y)
+
+class GuiText(Being):
+    def __init__(self,string,posx,posy):
+        self.gui_item = myfont.render(string, 1, WHITE)
+        self.position_x = posx
+        self.position_y = posy
+    def draw(self,position_x,position_y):
+      screen.blit(self.gui_item, (self.position_x, self.position_y))
+      
+    def tick(self):
+        super(self.__class__, self).tick()
+        self.draw(self.position_x,self.position_y)
 
 class Manager(object):
     def __init__(self):
