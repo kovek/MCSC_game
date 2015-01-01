@@ -39,11 +39,7 @@ class Gui(object):
     # should this be am on_screen_image or should it just be an `object` that contains on_screen_image things?
     def __init__(self):
         pass
-
-class GuiItem(OnScreenImage):
-    def __init__(self):
-        pass
-
+    
 class Menu(object):
     def __init__(self):
         pass
@@ -118,6 +114,16 @@ class Being(OnScreenImage):
         return
         super(self.__class__, self).tick()
 
+class GuiItem(OnScreenImage):
+    # GuiItem as in something that is part of the GUI
+    def __init__(self):
+        pass
+    def tick(self):
+        pass
+        return
+        super(self.__class__, self).tick()
+
+
 #le_time
 def animation_loop(animation_counter):
         if (pygame.time.get_ticks()//MS_PER_FRAME )-animation_counter > 0:
@@ -181,7 +187,8 @@ class Player(Being):
             K_w: (0,0,1),
             K_a: (-1,0,0),
             K_s: (0,0,-1),
-            K_d: (1,0,0)
+            K_d: (1,0,0),
+            K_SPACE: (0,0,0)
         }
         self.player_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'anim.png'))
         self.player_shadow = pygame.image.load(os.path.join('..', 'data', 'sprites', 'shadow.png'))
@@ -232,7 +239,7 @@ class Player(Being):
             self.position = tuple(map(add, self.position, self.velocity)) # Add movement to position
 
     def key_event(self, event):
-        if event.type == KEYDOWN:
+        if event.type == KEYDOWN and event.key in self.keys:
             self.pressed_keys.append(event.key)
         elif event.type == KEYUP:
             if event.key in self.pressed_keys:
@@ -279,7 +286,7 @@ class Enemy(Being):
         super(self.__class__, self).tick()
         self.draw(self.position_x,self.position_y)
 
-class GuiStatic(Being):
+class GuiStatic(GuiItem):
     def __init__(self,image,posx,posy):
         self.gui_item = pygame.image.load(os.path.join('..', 'data', 'gui', image))
         self.position_x = posx
@@ -291,7 +298,7 @@ class GuiStatic(Being):
         super(self.__class__, self).tick()
         self.draw(self.position_x,self.position_y)
 
-class GuiDynamic(Being):
+class GuiDynamic(GuiItem):
     def __init__(self,image,posx,posy,size,percent):
         self.gui_item = pygame.image.load(os.path.join('..', 'data', 'gui', image))
         self.position_x = posx
@@ -305,7 +312,7 @@ class GuiDynamic(Being):
         super(self.__class__, self).tick()
         self.draw(self.position_x,self.position_y)
 
-class GuiText(Being):
+class GuiText(GuiItem):
     def __init__(self,string,posx,posy):
         self.gui_item = myfont.render(string, 1, WHITE)
         self.position_x = posx
