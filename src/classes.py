@@ -217,33 +217,6 @@ class Player(Being):
             if key is not K_SPACE:
                 self.velocity = tuple(map(add,self.velocity,self.keys[key]))
 
-        cube = [
-            [[0,0,0], [1,1,-1]],
-            [[0,0,0], [1,-1,1]],
-            [[0,-0,0], [1,-1,-1]],
-            [[0,-0,-0], [1,1,1]],
-
-            [[-0,0,0], [-1,1,-1]],
-            [[-0,0,0], [-1,-1,1]],
-            [[-0,-0,0], [-1,-1,-1]],
-            [[-0,-0,-0], [-1,1,-1]],
-
-            [[0,0,0], [-1,1,1]],
-            [[0,0,-0], [-1,1,-1]],
-            [[0,-0,0], [-1,-1,1]],
-            [[0,-0,-0], [-1,-1,-1]],
-        ]
-
-        mn = scale(7,7,7)
-        edges = [list(pos_to_2d( (-250,0,-250) )), list(pos_to_2d( (250,0,-250) )), list(pos_to_2d( (250,0,250) )), list(pos_to_2d( (-250,0,250) )) ]
-        pygame.draw.polygon(screen, (0,0,255), edges )
-        for pair in cube[:]:
-            pair[0] = list(pos_to_2d(numpy.dot(mn, pair[0]+[1])))
-            pair[1] = list(pos_to_2d(numpy.dot(mn, pair[1]+[1])))
-
-            pygame.draw.line(screen, (255,0,0), pair[0], pair[1] )
-
-
         self.time_anim_temp=animation_loop(self.time_anim)
         if self.time_anim_temp > self.time_anim:
             if self.framepos == 180:
