@@ -118,11 +118,9 @@ class Being(OnScreenImage):
         return
         super(self.__class__, self).tick()
 
-#le_time
 def animation_loop(animation_counter):
         if (pygame.time.get_ticks()//MS_PER_FRAME )-animation_counter > 0:
             animation_counter += 1
-            #print animation_counter #debug
         return animation_counter
 
 def translate(x,y,z):
@@ -148,39 +146,63 @@ def rotate(x,y):
     ]
     return numpy.dot(rot_x, rot_y)
 
-fzNear = 0.5
-fzFar = 30.0
-frustumScale = 1.0
+def scale(x, y, z):
+    return [
+        [x,0,0,0],
+        [0,y,0,0],
+        [0,0,z,0],
+        [0,0,0,1.0]
+    ]
+
+
+fzNear = 10.0
+fzFar = 510.0
+frustumScale = 0.9 # Gots to be just enough to englobe the whole field
+
+length_of_field = 500
+width_of_field = 200
+elevation_of_camera = 50
+push_back_of_camera_from_field = 10
+push_back_of_camera = length_of_field/2 + push_back_of_camera_from_field
+angle_of_camera = math.atan( float(elevation_of_camera)/float(push_back_of_camera))
 
 perspectiveMatrix = [
-    [frustumScale,  0,              0,                                  0],
-    [0,             frustumScale,   0,                                  0],
+    [frustumScale/(1440.0/900.0),  0,              0,                                  0],
+    [0,             -frustumScale,   0,                                  0],
     [0,             0,              (fzFar + fzNear) / (fzNear-fzFar),  (2*fzFar * fzNear) / (fzNear - fzFar)],
     [0,             0,              -1.0,                               0.0]
 ]
 
+translation_of_camera =  translate(0.0, -elevation_of_camera, -push_back_of_camera)
+rotation_of_camera = rotate(0, 0)
+camera_matrix = numpy.dot(rotation_of_camera, translation_of_camera)
+camera_matrix = numpy.dot(perspectiveMatrix, camera_matrix)
+
+
 def pos_to_2d(position):
-    f = translate(0.0,10.0,0.0)
-    f = numpy.dot(rotate(1.0, 0), f)
-    f = numpy.dot(perspectiveMatrix, f)
-    out = numpy.dot(f, list(position+(1,)) )
-    out2 = (out[0], out[2])
+    out = numpy.dot(camera_matrix, list(position+(1,)) )
+    for i in range(len(out)):
+        out[i] /= out[3]
+    out[0] *= 1440
+    out[1] *= 900
+    out[0] += 720
+    out[1] += 450
+    out2 = ( int(out[0]), int(out[1]) )
     return out2
 
 class Player(Being):
-
     def __init__(self):
         self.time_anim = 0
         self.time_anim_temp = 0
         self.framepos = 0
         self.frameposjump = 0
-        self.position = (50,50,-50)
+        self.position = (0,0,0)
         self.velocity = (0,0,0)
         self.pressed_keys = []
         self.keys = {
-            K_w: (0,0,1),
+            K_w: (0,0,-1),
             K_a: (-1,0,0),
-            K_s: (0,0,-1),
+            K_s: (0,0,1),
             K_d: (1,0,0)
         }
         self.player_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'anim.png'))
@@ -194,7 +216,34 @@ class Player(Being):
         for key in self.pressed_keys:
             if key is not K_SPACE:
                 self.velocity = tuple(map(add,self.velocity,self.keys[key]))
-        print self.velocity
+
+        cube = [
+            [[0,0,0], [1,1,-1]],
+            [[0,0,0], [1,-1,1]],
+            [[0,-0,0], [1,-1,-1]],
+            [[0,-0,-0], [1,1,1]],
+
+            [[-0,0,0], [-1,1,-1]],
+            [[-0,0,0], [-1,-1,1]],
+            [[-0,-0,0], [-1,-1,-1]],
+            [[-0,-0,-0], [-1,1,-1]],
+
+            [[0,0,0], [-1,1,1]],
+            [[0,0,-0], [-1,1,-1]],
+            [[0,-0,0], [-1,-1,1]],
+            [[0,-0,-0], [-1,-1,-1]],
+        ]
+
+        mn = scale(7,7,7)
+        edges = [list(pos_to_2d( (-250,0,-250) )), list(pos_to_2d( (250,0,-250) )), list(pos_to_2d( (250,0,250) )), list(pos_to_2d( (-250,0,250) )) ]
+        pygame.draw.polygon(screen, (0,0,255), edges )
+        for pair in cube[:]:
+            pair[0] = list(pos_to_2d(numpy.dot(mn, pair[0]+[1])))
+            pair[1] = list(pos_to_2d(numpy.dot(mn, pair[1]+[1])))
+
+            pygame.draw.line(screen, (255,0,0), pair[0], pair[1] )
+
+
         self.time_anim_temp=animation_loop(self.time_anim)
         if self.time_anim_temp > self.time_anim:
             if self.framepos == 180:
@@ -224,6 +273,7 @@ class Player(Being):
             self.frameposjump = 0
         elif self.jumping == True:
             screen.blit(self.player_image, pos_to_2d(self.position), (self.frameposjump,50*9,20,50) )
+
         screen.blit(self.player_shadow, pos_to_2d( (self.position[0], 0, self.position[2]) ) )
         self.time_anim = self.time_anim_temp
 
@@ -274,7 +324,7 @@ class Enemy(Being):
         self.position_y = random.randint(0,700)
     def draw(self,position_x,position_y):
       screen.blit(self.gui_item, (self.position_x, self.position_y))
-      
+
     def tick(self):
         super(self.__class__, self).tick()
         self.draw(self.position_x,self.position_y)
@@ -286,7 +336,7 @@ class GuiStatic(Being):
         self.position_y = posy
     def draw(self,position_x,position_y):
       screen.blit(self.gui_item, (self.position_x, self.position_y))
-      
+
     def tick(self):
         super(self.__class__, self).tick()
         self.draw(self.position_x,self.position_y)
@@ -300,7 +350,7 @@ class GuiDynamic(Being):
         self.percentage = percent
     def draw(self,position_x,position_y):
       screen.blit(self.gui_item, (self.position_x, self.position_y), (0,0,self.size*self.percentage,46))
-      
+
     def tick(self):
         super(self.__class__, self).tick()
         self.draw(self.position_x,self.position_y)
@@ -312,7 +362,7 @@ class GuiText(Being):
         self.position_y = posy
     def draw(self,position_x,position_y):
       screen.blit(self.gui_item, (self.position_x, self.position_y))
-      
+
     def tick(self):
         super(self.__class__, self).tick()
         self.draw(self.position_x,self.position_y)
