@@ -224,6 +224,9 @@ class Player(Being):
             if key is not K_SPACE:
                 self.velocity = tuple(map(add,self.velocity,self.keys[key]))
 
+        edges = [list(pos_to_2d( (-250,0,-250) )), list(pos_to_2d( (250,0,-250) )), list(pos_to_2d( (250,0,250) )), list(pos_to_2d( (-250,0,250) )) ]
+        pygame.draw.polygon(screen, (0,0,255), edges )
+
         self.time_anim_temp=animation_loop(self.time_anim)
         if self.time_anim_temp > self.time_anim:
             if self.framepos == 180:

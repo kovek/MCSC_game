@@ -75,7 +75,7 @@ focus = player
 
 pos = (50,50,50)
 
-State = Enum('State', 'playing', 'menu', 'paused')
+State = Enum('State', 'playing menu paused')
 state = State.playing
 things_on_screen = [player, hp_container, mana_container, enemy_bar_container,square0,square1,square2,square3,square4,square5,hp_bar,mana_bar,enemy_bar,hp_text,mana_text,lh_text,rh_text,s1_text,s2_text,s3_text,s4_text,boss]
 
