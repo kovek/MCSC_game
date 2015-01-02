@@ -6,10 +6,20 @@ from classes import animation_loop
 
 # set up pygame
 pygame.init()
+window_size_h = 0
+window_size_v = 0
+print "Sup m8 this game runs only in 16:9 and only at resolutions above 1440x900, umad ppl stuck in 2010? XD\nGimme window horizontal size in pixels:"
+window_size_h = input()
+while window_size_h < 1440:
+    print "U 'avin a giggle m8? Gimme horizontal size at least 1440"
+    window_size_h = input()
+window_size_v = window_size_h/16*9
+offset_h = (window_size_h-1440)/2
+offset_v = (window_size_v-900)
 is_online = False
 
 # set up the window
-screen = pygame.display.set_mode((1440, 900), 0, 32)
+screen = pygame.display.set_mode((window_size_h, window_size_v), 0, 32)
 classes.screen = screen
 
 # set up the colors
@@ -38,34 +48,34 @@ pygame.display.update()
 
 #this should be moved to some other class eventually
 player = classes.Player()
-square_position_x = [510,580,670,740,810,880]
-hp_container = classes.GuiStatic('bar_container.png',20,830)
-mana_container = classes.GuiStatic('bar_container.png',970,830)
-enemy_bar_container = classes.GuiStatic('enemy_bar_container.png',470,20)
-hp_bar = classes.GuiDynamic('hp_bar.png', 22, 832, 446, health_percentage)
-mana_bar = classes.GuiDynamic('mana_bar.png', 972, 832, 446, mana_percentage)
-enemy_bar = classes.GuiDynamic('enemy_bar.png', 472, 22, 496, enemy_hp_percentage)
+square_position_x = [510+offset_h,580+offset_h,670+offset_h,740+offset_h,810+offset_h,880+offset_h]
+hp_container = classes.GuiStatic('bar_container.png',20+offset_h,830+offset_v)
+mana_container = classes.GuiStatic('bar_container.png',970+offset_h,830+offset_v)
+enemy_bar_container = classes.GuiStatic('enemy_bar_container.png',470+offset_h,20)
+hp_bar = classes.GuiDynamic('hp_bar.png', 22+offset_h, 832+offset_v, 446, health_percentage)
+mana_bar = classes.GuiDynamic('mana_bar.png', 972+offset_h, 832+offset_v, 446, mana_percentage)
+enemy_bar = classes.GuiDynamic('enemy_bar.png', 472+offset_h, 22, 496, enemy_hp_percentage)
 #IS THERE NO WAY TO DO THIS WITH A LIST? /rant
-square0 = classes.GuiStatic('square.png', square_position_x[0], 830)
-square1 = classes.GuiStatic('square.png', square_position_x[1], 830)
-square2 = classes.GuiStatic('square.png', square_position_x[2], 830)
-square3 = classes.GuiStatic('square.png', square_position_x[3], 830)
-square4 = classes.GuiStatic('square.png', square_position_x[4], 830)
-square5 = classes.GuiStatic('square.png', square_position_x[5], 830)
-hp_text = classes.GuiText('HP',20,810)
-mana_text = classes.GuiText('MP', 970, 810)
-lh_text = classes.GuiText('LH',510,810)
-rh_text = classes.GuiText('RH',580,810)
-s1_text = classes.GuiText('S1',670,810)
-s2_text = classes.GuiText('S2',740,810)
-s3_text = classes.GuiText('S3',810,810)
-s4_text = classes.GuiText('S4',880,810)
+square0 = classes.GuiStatic('square.png', square_position_x[0], 830+offset_v)
+square1 = classes.GuiStatic('square.png', square_position_x[1], 830+offset_v)
+square2 = classes.GuiStatic('square.png', square_position_x[2], 830+offset_v)
+square3 = classes.GuiStatic('square.png', square_position_x[3], 830+offset_v)
+square4 = classes.GuiStatic('square.png', square_position_x[4], 830+offset_v)
+square5 = classes.GuiStatic('square.png', square_position_x[5], 830+offset_v)
+hp_text = classes.GuiText('HP',20+offset_h,810+offset_v)
+mana_text = classes.GuiText('MP', 970+offset_h, 810+offset_v)
+lh_text = classes.GuiText('LH',510+offset_h,810+offset_v)
+rh_text = classes.GuiText('RH',580+offset_h,810+offset_v)
+s1_text = classes.GuiText('S1',670+offset_h,810+offset_v)
+s2_text = classes.GuiText('S2',740+offset_h,810+offset_v)
+s3_text = classes.GuiText('S3',810+offset_h,810+offset_v)
+s4_text = classes.GuiText('S4',880+offset_h,810+offset_v)
 boss = classes.Enemy()
 focus = player
 
 pos = (50,50,50)
 
-State = Enum('State', 'playing menu paused')
+State = Enum('State', 'playing', 'menu', 'paused')
 state = State.playing
 things_on_screen = [player, hp_container, mana_container, enemy_bar_container,square0,square1,square2,square3,square4,square5,hp_bar,mana_bar,enemy_bar,hp_text,mana_text,lh_text,rh_text,s1_text,s2_text,s3_text,s4_text,boss]
 
