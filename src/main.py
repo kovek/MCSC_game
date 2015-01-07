@@ -6,20 +6,23 @@ from classes import animation_loop
 
 # set up pygame
 pygame.init()
+
 window_size_h = 0
 window_size_v = 0
 print "Sup m8 this game runs only at resolutions above 1440x900, umad ppl stuck in 2010? XD"
+# get input for horizontal size, get new one if below 1440 px
 print "Gimme window horizontal size in pixels:"
 window_size_h = input()
 while window_size_h < 1440:
     print "U 'avin a giggle m8? Gimme horizontal size at least 1440"
     window_size_h = input()
+# get input for vertical size, get new one if below 900 px
 print "Gimme window vertical size in pixels:"
 window_size_v = input()
 while window_size_v < 900:
     print "U 'avin a giggle m8? Gimme vertical size at least 900"
     window_size_v = input()
-window_size = (window_size_h,window_size_v)
+# offsets for gui items to remain at the same relative place regardless of screen size
 offset_h = (window_size_h-1440)/2
 offset_v = (window_size_v-900)
 
@@ -57,7 +60,8 @@ screen.fill(BLACK)
 # draw the window onto the screen
 pygame.display.update()
 
-#this should be moved to some other class eventually
+# initialization of every element of the game (player, enemies, gui items)
+###this should be moved to some other class eventually
 player = classes.Player()
 square_position_x = [510+offset_h,580+offset_h,670+offset_h,740+offset_h,810+offset_h,880+offset_h]
 hp_container = classes.GuiStatic('bar_container.png',20+offset_h,830+offset_v)
@@ -66,7 +70,7 @@ enemy_bar_container = classes.GuiStatic('enemy_bar_container.png',470+offset_h,2
 hp_bar = classes.GuiDynamic('hp_bar.png', 22+offset_h, 832+offset_v, 446, health_percentage)
 mana_bar = classes.GuiDynamic('mana_bar.png', 972+offset_h, 832+offset_v, 446, mana_percentage)
 enemy_bar = classes.GuiDynamic('enemy_bar.png', 472+offset_h, 22, 496, enemy_hp_percentage)
-#IS THERE NO WAY TO DO THIS WITH A LIST? /rant
+###IS THERE NO WAY TO DO THIS WITH A LIST? /rant
 square0 = classes.GuiStatic('square.png', square_position_x[0], 830+offset_v)
 square1 = classes.GuiStatic('square.png', square_position_x[1], 830+offset_v)
 square2 = classes.GuiStatic('square.png', square_position_x[2], 830+offset_v)
@@ -82,6 +86,8 @@ s2_text = classes.GuiText('S2',740+offset_h,810+offset_v)
 s3_text = classes.GuiText('S3',810+offset_h,810+offset_v)
 s4_text = classes.GuiText('S4',880+offset_h,810+offset_v)
 boss = classes.Enemy()
+
+
 focus = player
 
 pos = (50,50,50)
