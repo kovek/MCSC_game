@@ -22,13 +22,14 @@ is_online = False
 screen = pygame.display.set_mode((window_size_h, window_size_v), 0, 32)
 classes.screen = screen
 
-# set up the colors
+# Set up the colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
+# Values for the GUI
 max_health_value = 750.0
 max_mana_value = 500.0
 max_enemy_hp_value = 15000.0
@@ -40,13 +41,7 @@ mana_percentage = mana_value/max_mana_value
 enemy_hp_percentage = enemy_hp_value/max_enemy_hp_value
 
 
-# draw the black background onto the surface
-screen.fill(BLACK)
-
-# draw the window onto the screen
-pygame.display.update()
-
-#this should be moved to some other class eventually
+# This should be moved to some other class eventually
 player = classes.Player()
 square_position_x = [510+offset_h,580+offset_h,670+offset_h,740+offset_h,810+offset_h,880+offset_h]
 hp_container = classes.GuiStatic('bar_container.png',20+offset_h,830+offset_v)
@@ -73,26 +68,24 @@ s4_text = classes.GuiText('S4',880+offset_h,810+offset_v)
 boss = classes.Enemy()
 focus = player
 
-pos = (50,50,50)
-
+# Use this to know what state the game is at
 State = Enum('State', 'playing menu paused')
 state = State.playing
+
+# things_on_screen contains everything that must be drawn by pygame.
 things_on_screen = [player, hp_container, mana_container, enemy_bar_container,square0,square1,square2,square3,square4,square5,hp_bar,mana_bar,enemy_bar,hp_text,mana_text,lh_text,rh_text,s1_text,s2_text,s3_text,s4_text,boss]
-
-
-paused = False
 
 # run the game loop
 while True:
     screen.fill(BLACK)
-    if paused:
+    if state == State.paused:
         pass
         # don't move anything
     else:
         for thing in things_on_screen:
             thing.tick()
 
-    # Handle events
+    # Handle events (keys)
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
@@ -104,7 +97,7 @@ while True:
                 if state == State.playing:
                     # If not online, stop game.
                     if not is_online:
-                        paused = True
+                        state = State.paused
 
                     classes.PauseMenu.show()
 

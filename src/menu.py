@@ -11,8 +11,17 @@ import gooeypy as gui
 from gooeypy.const import *
 
 class Online(object):
+    """ This class will manage the client's interactions with everything that is
+        online. It will manage information transfer with LAN and online servers. """
+
     @staticmethod
     def get_lan_rooms():
+        """ Returns information about the Lan rooms currently available.
+            For now, we're just returning placeholders. Later on, we will need to return:
+                - ip address of host
+                - people in room
+                - level selected
+            {ip_address:"1.1.1.1", num_people:5, level_selected:2} """
         return ['onelan', 'twolan', 'threelan', 'fourlan']
         pass
 
@@ -25,28 +34,57 @@ pygame.init()
 
 clock = pygame.time.Clock()
 
+# Setup the window
 screen = pygame.display.set_mode((640, 480), pygame.SRCALPHA)
-
 app = gui.Container(width=640, height=480, surface=screen)
+
+""" These will contain menus.
+    Basically, instead of giving a label to each menu like:
+    menu.which = "lanroom1", to identify them, we put them into lists.
+"""
+
+""" lan_rooms is just an array that stores all of our menus for LAN games.
+    There is currently no other way to know what menus correspond to what.
+    We could give each menu a name but that would mean we would have to iterateover all of them
+"""
 
 lan_rooms = []
 online_rooms = []
 game_saves = []
 
-
-#THE LINK
 def play():
+    """ Launch the game. We will need to pass some parameters later on like:
+         if online:
+            - ip address to connect to
+            (The rest of the needed information will be provided by server)
+         if not online...
+            - which level the player will be playing
+            - selected class
+            - equiped items
+            - etc
+         """
+
+    # Fix found on SO.
     if sys.platform == "win32":
         os.startfile("main.py")
     else:
         opener ="python" if sys.platform == "darwin" else "xdg-open"
         subprocess.call([opener, "main.py"])
+
+    # Close the menu
     pygame.quit()
     quit()
 
-
+# The menu currently displayed is stored inside active_menu
 active_menu = None
+
 class Menus(gui.Container):
+    """ Basically, how Gooeypy works is that you create a hierarchy of different
+        gui.Container and gui.Widgets by using the .add() function. The root of
+        the tree will be an instance of Menus. Everything else will be .add()'ed
+        to that and to the resulting branches. Any logic is done in the activate
+        method."""
+
     def activate(self, which_menu):
         global game_saves
         global active_menu
@@ -97,15 +135,14 @@ class Menus(gui.Container):
             single_player_menubar.add(new_button)
             single_player_menubar2.add(exit_single_player_button)
 
-
-
-
 menus = Menus(width=640, height=480)
 app.add(menus)
 
+# A quit constant. It is used when the player clicks the quit button to terminate
+# the program.
 Const = Enum('Const', 'QUIT')
 
-
+# Create all the menus.
 mainmenu = gui.Container(width=640, height=480)
 credits_menu = gui.Container(width=640, height=480)
 play_menu = gui.Container(width=640, height=480)
@@ -122,11 +159,9 @@ new_game_menu = gui.Container(width=640, height=480)
 
 
 
-
-
+# Here we add widgets (buttons, sliders, etc.) to the menus.
 
 ### Main Menu
-
 
 play_button = gui.Button("Play")
 play_button.connect(CLICK, menus.activate, play_menu)
@@ -145,8 +180,8 @@ mainmenu_menubar.add(play_button, options_button, credits_button, quit_button)
 
 mainmenu.add(mainmenu_menubar)
 
-### Credits
 
+### Credits
 
 exit_credits_button = gui.Button("Back", align="left", valign="bottom", x=10, y=-10)
 exit_credits_button.connect(CLICK, menus.activate, mainmenu)
@@ -155,7 +190,6 @@ credits_menu.add(exit_credits_button)
 
 
 ### Play
-
 
 single_player_button = gui.Button("Single Player")
 single_player_button.connect(CLICK, menus.activate, single_player_menu)
@@ -174,7 +208,6 @@ play_menu.add(play_menubar)
 
 ### Single Player
 
-
 exit_single_player_button = gui.Button("Back")
 exit_single_player_button.connect(CLICK, menus.activate, play_menu)
 
@@ -184,10 +217,9 @@ single_player_menubar2.add(exit_single_player_button)
 
 single_player_menu.add(single_player_menubar2)
 single_player_menu.add(single_player_menubar)
-single_player_menubar.connect(CLICK,play)
+single_player_menubar.connect(CLICK, play)
 
 ### Multiplayer
-
 
 lan_button = gui.Button("LAN")
 lan_button.connect(CLICK, menus.activate, lan_menu)
@@ -203,8 +235,8 @@ multiplayer_menubar.add(lan_button, online_button, exit_multiplayer_button)
 
 multiplayer_menu.add(multiplayer_menubar)
 
-### LAN
 
+### LAN
 
 ### Loop over all available rooms and create a button for each
 room99 = gui.Button("placeholder")
@@ -219,8 +251,8 @@ lan_menubar.add(room99, exit_lan_button)
 lan_menu.add(lan_menubar, room99)
 #lan_menu.add(room99)
 
-### Online
 
+### Online
 
 ### Loop over all available rooms and create a button for each
 
@@ -234,6 +266,7 @@ online_menubar = gui.VBox(align="center", valign="center", y=20, spacing=20)
 online_menubar.add(online_room99, exit_online_button)
 
 online_menu.add(online_menubar)
+
 
 ### Game 1: Rick
 
@@ -254,8 +287,8 @@ save1_menubar.add(continue_button, replay_button, new_game_button, exit_save1_bu
 
 save1_menu.add(save1_menubar)
 
-### New Game: Are you sure?
 
+### New Game: Are you sure?
 
 yes_button = gui.Button("Yes")
 yes_button.connect(CLICK, menus.activate, 94)
@@ -268,8 +301,8 @@ are_you_sure_menubar.add(yes_button, no_button)
 
 are_you_sure_menu.add(are_you_sure_menubar)
 
-### Replay Level
 
+### Replay Level
 
 ### List all completed levels
 
@@ -281,21 +314,16 @@ exit_replay_button.connect(CLICK, menus.activate, single_player_menu)
 
 replay_menu.add(level99, exit_replay_button)
 
-### Options Menu
 
+### Options Menu
 
 w1 = gui.HSlider(min_value=0, length=10, x=200, y=160) # Brightness
 w2 = gui.Input(x=100, y=30, width=240) # Resolution X
 w3 = gui.Input(x=350, y=30, width=240) # Resolution Y
-
 w4 = gui.HSlider(min_value=0, length=10, x=200, y=560) # Volume
-
 w5 = gui.HSlider(min_value=0, length=10, x=200, y=590) # Speed
-
 w6 = gui.Button("On/Off") # Show GUI
-
 w7 = gui.Button("Save") # Save
-
 w8 = gui.Button("Defaults") # Defaults
 
 exit_options_menu = gui.Button("Back")
@@ -303,10 +331,10 @@ exit_options_menu.connect(CLICK, menus.activate, mainmenu)
 
 options_menu.add(w1, w2, w3, w4, w5, w6, w7, w8, exit_options_menu)
 
+
 # Inside a room.
 # Right half shows image with description under it.
 # Left half shows people in room and the selected map.
-
 
 # For each player, create a button which you can CLICK to get image + description
 
@@ -321,26 +349,25 @@ room_menubar.add(map_button, exit_room_button)
 
 room_menu.add(room_menubar)
 
+
 ## Finito
 
-
-menus.add(mainmenu, # 0
+# Connect everything to `menus`
+menus.add(mainmenu,
         play_menu,
         options_menu,
         credits_menu,
         single_player_menu,
-        multiplayer_menu, # 5
+        multiplayer_menu,
         lan_menu,
         online_menu,
         save1_menu,
         are_you_sure_menu,
         replay_menu,
-        room_menu) # 11
+        room_menu)
 
+# We want the player to start at the main menu
 menus.activate(mainmenu)
-
-#the_temp = None
-the_temp = gui.Container(width=640, height=480)
 
 while True:
     clock.tick(20)
@@ -379,7 +406,6 @@ while True:
             lan_room_button.connect(CLICK, menus.activate, room)
             lan_menubar.add(lan_room_button)
         lan_menubar.add(exit_lan_button)
-        #print ">>", lan_menubar.widgets
 
     if active_menu == online_menu:
         pass

@@ -6,7 +6,7 @@ import numpy
 import math
 import random
 
-# set up pygame and stuff
+# Set up pygame and stuff
 pygame.init()
 pygame.font.init()
 random.seed()
@@ -19,11 +19,14 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
+# Set up numbers for animations
 FRAMES_PER_SECOND = 500
 MS_PER_FRAME = 200
 JUMP_SPEED = 1.5
 
 class OnScreenImage(object):
+    """ Anything that is on the screen and needs an image file to be drawn """
+
     def __init__(self):
         pass
     def draw(self):
@@ -32,15 +35,24 @@ class OnScreenImage(object):
         self.frame = (self.frame+1)%self.FRAME_NUMBERS
         return
 
+
 class OnScreenImageGui(object):
     pass
 
+
 class Gui(object):
     # should this be am on_screen_image or should it just be an `object` that contains on_screen_image things?
+    """ The Gui class will contain everything that will be displayed as a
+        Graphical interface around the game."""
+
     def __init__(self):
         pass
 
+
 class Menu(object):
+    """ Basically this was supposed to hold all the different menus before
+    playing a game. We might replace it with our Gooeypy menu after all. """
+
     def __init__(self):
         pass
 
@@ -50,8 +62,12 @@ class Menu(object):
             # manage the key
         pass
 
+
 class PauseMenu(Menu):
-    # The menu tree must be a stack
+    """ PauseMenu will contain buttons like:
+        - Continue Game
+        - Options
+        - Go to Menu """
 
     def __init__(self):
         # level in the options tree
@@ -75,11 +91,18 @@ class PauseMenu(Menu):
             # Go back the menu tree.
             return
 
+
 class ContainerOnMenu(OnScreenImage):
+    """ This thing was supposed to contain a list of buttons and text inputs.
+        However, we might be going with Gooeypy so we might remove that soon. """
+
     def __init__(self):
         pass
 
+
 class OptionInContainer(OnScreenImage):
+    """ One of the buttons in the container that is in a menu. """
+
     def __init__(self):
         self.image = 'somefile'
         self.corners = [1,2,3,4]
@@ -96,23 +119,33 @@ class OptionInContainer(OnScreenImage):
         screen.blit(self.filler, (x+size_of_corner,y+size_of_corner) )
 
 
-
 class OnField(OnScreenImage):
+    """ Something on the battlefield. Like a fireball or a boss or a player.
+        Naturally, that means it will have a .position, a .velocity and other
+        members"""
+
     def __init__(self):
         pass
+
 
 class Item(OnField):
+    """ An item that you can pick up. A potion? A cookie. Whatever.
+        Pretty much the thing we're adding in this class is just the ability
+        for the player to pick it up. """
     def __init__(self):
         pass
 
-class Being(OnScreenImage):
-    # Being as in something that moves by itself.
+
+class Being(OnField):
+    """ Being as in something that moves by itself. An Entity. It could be a
+        player or a boss. """
     def __init__(self):
         pass
     def tick(self):
         pass
         return
         super(self.__class__, self).tick()
+
 
 class GuiItem(OnScreenImage):
     # GuiItem as in something that is part of the GUI
@@ -124,13 +157,14 @@ class GuiItem(OnScreenImage):
         super(self.__class__, self).tick()
 
 
-#le_time
+
 def animation_loop(animation_counter):
         if (pygame.time.get_ticks()//MS_PER_FRAME )-animation_counter > 0:
             animation_counter += 1
         return animation_counter
 
 def translate(x,y,z):
+    """ Return a translation matrix. """
     return [
         [1.0,0,0,x],
         [0,1.0,0,y],
@@ -139,6 +173,7 @@ def translate(x,y,z):
     ]
 
 def rotate(x,y):
+    """ Return a rotation matrix. It rotates around the x- and y- axes. """
     rot_x = [
         [1.0,0,0,0],
         [0,math.cos(x),-math.sin(x),0],
@@ -154,6 +189,7 @@ def rotate(x,y):
     return numpy.dot(rot_x, rot_y)
 
 def scale(x, y, z):
+    """ Return a scaling matrix. """
     return [
         [x,0,0,0],
         [0,y,0,0],
@@ -162,10 +198,12 @@ def scale(x, y, z):
     ]
 
 
+# Numbers needed for depth perception
 fzNear = 10.0
 fzFar = 510.0
 frustumScale = 0.9 # Gots to be just enough to englobe the whole field
 
+# Numbers about "camera"
 length_of_field = 500
 width_of_field = 200
 elevation_of_camera = 50
@@ -180,6 +218,7 @@ perspectiveMatrix = [
     [0,             0,              -1.0,                               0.0]
 ]
 
+# Our transformations applied by doing dot products.
 translation_of_camera =  translate(0.0, -elevation_of_camera, -push_back_of_camera)
 rotation_of_camera = rotate(0, 0)
 camera_matrix = numpy.dot(rotation_of_camera, translation_of_camera)
@@ -187,6 +226,8 @@ camera_matrix = numpy.dot(perspectiveMatrix, camera_matrix)
 
 
 def pos_to_2d(position):
+    """ Transform the current <x,y,z> point to a <x,y> point that will appear
+        on the screen. That means we apply transformations to the point. """
     out = numpy.dot(camera_matrix, list(position+(1,)) )
     for i in range(len(out)):
         out[i] /= out[3]
@@ -197,7 +238,10 @@ def pos_to_2d(position):
     out2 = ( int(out[0]), int(out[1]) )
     return out2
 
+
 class Player(Being):
+    """ """
+
     def __init__(self):
         self.time_anim = 0
         self.time_anim_temp = 0
@@ -210,7 +254,7 @@ class Player(Being):
             K_w: (0,0,-1),
             K_a: (-1,0,0),
             K_s: (0,0,1),
-            K_d: (1,0,0)
+            K_d: (1,0,0),
         }
         self.player_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'anim.png'))
         self.player_shadow = pygame.image.load(os.path.join('..', 'data', 'sprites', 'shadow.png'))
@@ -252,6 +296,7 @@ class Player(Being):
             screen.blit(self.player_image, pos_to_2d(self.position), (0,50*self.character_sprites[self.velocity],20,50) )
         else:
             screen.blit(self.player_image, pos_to_2d(self.position), (self.framepos,50*self.character_sprites[self.velocity],20,50) )
+
         if self.jumping == False:
             self.frameposjump = 0
         elif self.jumping == True:
@@ -265,7 +310,7 @@ class Player(Being):
             self.position = tuple(map(add, self.position, self.velocity)) # Add movement to position
 
     def key_event(self, event):
-        if event.type == KEYDOWN and event.key in self.keys:
+        if event.type == KEYDOWN:
             self.pressed_keys.append(event.key)
         elif event.type == KEYUP:
             if event.key in self.pressed_keys:
@@ -301,6 +346,8 @@ class Player(Being):
 
 
 class Enemy(Being):
+    """ A class for the enemy. Will have to have some sort of AI. """
+
     def __init__(self):
         self.gui_item = pygame.image.load(os.path.join('..', 'data', 'sprites', 'bosses', 'boss.png'))
         self.position_x = random.randint(0,1340)
@@ -311,6 +358,7 @@ class Enemy(Being):
     def tick(self):
         super(self.__class__, self).tick()
         self.draw(self.position_x,self.position_y)
+
 
 class GuiStatic(GuiItem):
     def __init__(self,image,posx,posy):
@@ -351,5 +399,9 @@ class GuiText(GuiItem):
         self.draw(self.position_x,self.position_y)
 
 class Manager(object):
+    """ The Manager of the whole game?
+        For now the game runs perfectly fine with just a while loop but we might
+        need to organize things more later on... """
+
     def __init__(self):
         pass
