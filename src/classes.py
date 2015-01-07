@@ -95,8 +95,6 @@ class OptionInContainer(OnScreenImage):
         #figure_out_height_given_font(font, text, width)
         screen.blit(self.filler, (x+size_of_corner,y+size_of_corner) )
 
-
-
 class OnField(OnScreenImage):
     def __init__(self):
         pass
@@ -122,7 +120,6 @@ class GuiItem(OnScreenImage):
         pass
         return
         super(self.__class__, self).tick()
-
 
 #le_time
 def animation_loop(animation_counter):
@@ -161,7 +158,6 @@ def scale(x, y, z):
         [0,0,0,1.0]
     ]
 
-
 fzNear = 10.0
 fzFar = 510.0
 frustumScale = 0.9 # Gots to be just enough to englobe the whole field
@@ -190,10 +186,10 @@ def pos_to_2d(position):
     out = numpy.dot(camera_matrix, list(position+(1,)) )
     for i in range(len(out)):
         out[i] /= out[3]
-    out[0] *= 1440
-    out[1] *= 900
-    out[0] += 720
-    out[1] += 450
+    out[0] *= window_size_h
+    out[1] *= window_size_v
+    out[0] += window_size_h/2
+    out[1] += window_size_v/2
     out2 = ( int(out[0]), int(out[1]) )
     return out2
 

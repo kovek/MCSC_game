@@ -8,14 +8,21 @@ from classes import animation_loop
 pygame.init()
 window_size_h = 0
 window_size_v = 0
-print "Sup m8 this game runs only in 16:9 and only at resolutions above 1440x900, umad ppl stuck in 2010? XD\nGimme window horizontal size in pixels:"
+print "Sup m8 this game runs only at resolutions above 1440x900, umad ppl stuck in 2010? XD"
+print "Gimme window horizontal size in pixels:"
 window_size_h = input()
 while window_size_h < 1440:
     print "U 'avin a giggle m8? Gimme horizontal size at least 1440"
     window_size_h = input()
-window_size_v = window_size_h/16*9
+print "Gimme window vertical size in pixels:"
+window_size_v = input()
+while window_size_v < 900:
+    print "U 'avin a giggle m8? Gimme vertical size at least 900"
+    window_size_v = input()
+window_size = (window_size_h,window_size_v)
 offset_h = (window_size_h-1440)/2
 offset_v = (window_size_v-900)
+
 is_online = False
 
 # set up the window
@@ -28,6 +35,10 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
+
+# give the size of window to classes.py
+classes.window_size_h = window_size_h
+classes.window_size_v = window_size_v
 
 max_health_value = 750.0
 max_mana_value = 500.0
