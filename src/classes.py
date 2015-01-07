@@ -6,7 +6,7 @@ import numpy
 import math
 import random
 
-# Set up pygame and stuff
+# set up pygame, random number generator, font and colors
 pygame.init()
 pygame.font.init()
 random.seed()
@@ -19,7 +19,7 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
-# Set up numbers for animations
+# variables for target framerate, milliseconds per animation frame and jump speed of character
 FRAMES_PER_SECOND = 500
 MS_PER_FRAME = 200
 JUMP_SPEED = 1.5
@@ -118,7 +118,6 @@ class OptionInContainer(OnScreenImage):
         #figure_out_height_given_font(font, text, width)
         screen.blit(self.filler, (x+size_of_corner,y+size_of_corner) )
 
-
 class OnField(OnScreenImage):
     """ Something on the battlefield. Like a fireball or a boss or a player.
         Naturally, that means it will have a .position, a .velocity and other
@@ -157,7 +156,7 @@ class GuiItem(OnScreenImage):
         super(self.__class__, self).tick()
 
 
-
+# this function increments a value everytime the time specified in MS_PER_FRAME passes, this is used for animating objects
 def animation_loop(animation_counter):
         if (pygame.time.get_ticks()//MS_PER_FRAME )-animation_counter > 0:
             animation_counter += 1
@@ -231,10 +230,10 @@ def pos_to_2d(position):
     out = numpy.dot(camera_matrix, list(position+(1,)) )
     for i in range(len(out)):
         out[i] /= out[3]
-    out[0] *= 1440
-    out[1] *= 900
-    out[0] += 720
-    out[1] += 450
+    out[0] *= window_size_h
+    out[1] *= window_size_v
+    out[0] += window_size_h/2
+    out[1] += window_size_v/2
     out2 = ( int(out[0]), int(out[1]) )
     return out2
 
@@ -263,7 +262,9 @@ class Player(Being):
         self.velocity_up = 0
 
     def draw(self):
+        # this resets the 3D velocity tuple
         self.velocity = (0,0,0)
+        # this looks for any key that has been pressed that is used for 2D movement and adds its tuple to the velocity to get the sum of the velocities
         for key in self.pressed_keys:
             if key is not K_SPACE:
                 self.velocity = tuple(map(add,self.velocity,self.keys[key]))
@@ -271,6 +272,8 @@ class Player(Being):
         edges = [list(pos_to_2d( (-250,0,-250) )), list(pos_to_2d( (250,0,-250) )), list(pos_to_2d( (250,0,250) )), list(pos_to_2d( (-250,0,250) )) ]
         pygame.draw.polygon(screen, (0,0,255), edges )
 
+        # this gets a temporary value for animation purposes and compares it to the existing value to see if it is greater (i.e. the required time MS_PER_FRAME has passed)
+        # if the value is greater, the horizontal position of the part of the spritesheet that serves for the character's sprite is modified to animate it) <- if you do not understand this it's ok
         self.time_anim_temp=animation_loop(self.time_anim)
         if self.time_anim_temp > self.time_anim:
             if self.framepos == 180:
@@ -281,6 +284,7 @@ class Player(Being):
                 self.frameposjump = self.frameposjump+20
         else:
             pass
+        # dictionary to know which velocity tuple corresponds to which vertical position on the sprite sheet that will be used for the character's sprite <- if you do not understand this it's ok
         self.character_sprites = {
             (-1,0,1): 0,
             (1,0,1): 1,
@@ -292,13 +296,17 @@ class Player(Being):
             (1,0,0): 7,
             (0,0,0): 8
             }
+        # sets the character's sprite to the default non-moving player sprite if velocity is 0
         if self.velocity == (0,0,0):
             screen.blit(self.player_image, pos_to_2d(self.position), (0,50*self.character_sprites[self.velocity],20,50) )
+        # if it is not, sets the character's sprite to the corresponding animation sprite
         else:
             screen.blit(self.player_image, pos_to_2d(self.position), (self.framepos,50*self.character_sprites[self.velocity],20,50) )
 
+        # if jumping, sets the character's sprite to the corresponding jumping animation sprite
         if self.jumping == False:
             self.frameposjump = 0
+        # copies the temporary value to the actual value for animation purposes, so they are equal again for the time specified in MS_PER_FRAME and the frames don't change
         elif self.jumping == True:
             screen.blit(self.player_image, pos_to_2d(self.position), (self.frameposjump,50*9,20,50) )
 
@@ -349,9 +357,12 @@ class Enemy(Being):
     """ A class for the enemy. Will have to have some sort of AI. """
 
     def __init__(self):
+        # initializes enemy sprite from file
         self.gui_item = pygame.image.load(os.path.join('..', 'data', 'sprites', 'bosses', 'boss.png'))
+        # sets x and y position for enemy to random values within the window
         self.position_x = random.randint(0,1340)
         self.position_y = random.randint(0,700)
+    # draws enemy at (x,y) coordinates
     def draw(self,position_x,position_y):
       screen.blit(self.gui_item, (self.position_x, self.position_y))
 
@@ -361,10 +372,14 @@ class Enemy(Being):
 
 
 class GuiStatic(GuiItem):
+    # self; image is the supplied image file, posx and posy are the supplied (x,y) coordinates
     def __init__(self,image,posx,posy):
+        # initializes static gui item from supplied image file
         self.gui_item = pygame.image.load(os.path.join('..', 'data', 'gui', image))
+        # sets x and y position for gui item to supplied (x,y) coordinates
         self.position_x = posx
         self.position_y = posy
+    # draws static gui item at (x,y) coordinates)
     def draw(self,position_x,position_y):
       screen.blit(self.gui_item, (self.position_x, self.position_y))
 
@@ -373,12 +388,17 @@ class GuiStatic(GuiItem):
         self.draw(self.position_x,self.position_y)
 
 class GuiDynamic(GuiItem):
+    # self; image is the supplied image file, posx and posy are the supplied (x,y) coordinates, size is the size of the dynamic gui item when it is full, percent is the amount of dynamic gui item to display (0<=percent<=1)
     def __init__(self,image,posx,posy,size,percent):
+        # initializes dynamic gui item from supplied image file
         self.gui_item = pygame.image.load(os.path.join('..', 'data', 'gui', image))
+        # sets x and y position for gui item to supplied (x,y) coordinates
         self.position_x = posx
         self.position_y = posy
+        # sets size and percentage for gui item to supplied size and percent
         self.size = size
         self.percentage = percent
+    # draws dynamic gui item at (x,y) coordinates, where its length is its size times the percentage of it being displayed
     def draw(self,position_x,position_y):
       screen.blit(self.gui_item, (self.position_x, self.position_y), (0,0,self.size*self.percentage,46))
 
@@ -387,10 +407,14 @@ class GuiDynamic(GuiItem):
         self.draw(self.position_x,self.position_y)
 
 class GuiText(GuiItem):
+    # self; text is the supplied string, posx and posy are the supplied (x,y) coordinates
     def __init__(self,string,posx,posy):
+        # draws text from the supplied is the supplied string with the myfont font in white
         self.gui_item = myfont.render(string, 1, WHITE)
+        # sets x and y position for gui text to supplied (x,y) coordinates
         self.position_x = posx
         self.position_y = posy
+        # draws gui text at (x,y) coordinates)
     def draw(self,position_x,position_y):
       screen.blit(self.gui_item, (self.position_x, self.position_y))
 
