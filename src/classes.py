@@ -391,16 +391,15 @@ class Shadow(Being):
         self.source = source
     def update_pos(self,owner,source):
         if source.angle_actual >=0.0 and source.angle_actual <=90.0:
-            self.position=owner.position
+            self.position=pos_to_2d(owner.position)
             self.position_list = list(self.position)
-            owner.position_list = list(owner.position)
             try:
-                self.position_list[0] = owner.position_list[0]-(owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))
+                self.position_list[0] = self.position_list[0]-(owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))
             except ArithmeticError:
-                 self.position_list[0] = owner.position_list[0]
+                 self.position_list[0] = self.position_list[0]-10000
             self.position = tuple(self.position_list)
         elif source.angle_actual >90.0 and source.angle_actual <=180.0:
-            self.position=owner.position
+            self.position=pos_to_2d(owner.position)
     def update_scale(self,owner,source):
         if source.angle_actual >=0.0 and source.angle_actual <=90.0:
             try:
@@ -415,9 +414,9 @@ class Shadow(Being):
         elif source.angle_actual >180.0:
             self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, 0,0)
     def draw(self,*position):
-        self.update_pos(self.owner,self.source)
         self.update_scale(self.owner,self.source)
-        screen.blit(self.shadow_image_scaled, pos_to_2d(self.position))
+        self.update_pos(self.owner,self.source)
+        screen.blit(self.shadow_image_scaled, self.position)
     def tick(self):
         super(self.__class__, self).tick()
         self.draw()
