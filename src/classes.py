@@ -19,10 +19,11 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
-# variables for target framerate, milliseconds per animation frame and jump speed of character
+# variables for target framerate, milliseconds per animation frame,jump speed of character, and time for 1 day (in ms)
 FRAMES_PER_SECOND = 500
 MS_PER_FRAME = 200
 JUMP_SPEED = 1.5
+DAY_TIME = 36000
 
 class OnScreenImage(object):
     """ Anything that is on the screen and needs an image file to be drawn """
@@ -162,6 +163,12 @@ def animation_loop(animation_counter):
             animation_counter += 1
         return animation_counter
 
+# this function is the angle at which the sun is, moves by 1 degree every second
+def sun_loop(sun_degree):
+    if (pygame.time.get_ticks()//(DAY_TIME/360) - sun_degree > 0):
+        sun_degree +=1
+    return sun_degree
+
 def translate(x,y,z):
     """ Return a translation matrix. """
     return [
@@ -255,9 +262,7 @@ class Player(Being):
             K_s: (0,0,1),
             K_d: (1,0,0),
         }
-        self.player_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'anim.png'))
-        self.player_shadow = pygame.image.load(os.path.join('..', 'data', 'sprites', 'shadow.png'))
-
+        self.player_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'player_anim.png'))
         self.jumping = False
         self.velocity_up = 0
 
@@ -310,7 +315,7 @@ class Player(Being):
         elif self.jumping == True:
             screen.blit(self.player_image, pos_to_2d(self.position), (self.frameposjump,50*9,20,50) )
 
-        screen.blit(self.player_shadow, pos_to_2d( (self.position[0], 0, self.position[2]) ) )
+        
         self.time_anim = self.time_anim_temp
 
 
@@ -352,7 +357,30 @@ class Player(Being):
             self.jumping = False
             self.velocity_up = 0
 
-
+# this is the star class for various stars
+class Star(Being):
+    def __init__(self):
+        self.angle = 0
+    def increment_angle(self):
+        self.angle = sun_loop(self.angle)
+    def tick(self):
+        super(self.__class__, self).tick()
+        self.increment_angle()
+        
+# this is the shadow class for various shadows
+class Shadow(Being):
+    def __init__(self,owner,owner_string):
+        self.shadow_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', owner_string+'_shadow.png'))
+        self.owner = owner
+    def update_pos(self,owner):
+        self.position=owner.position
+    def draw(self,*position):
+        self.update_pos(self.owner)
+        screen.blit(self.shadow_image, pos_to_2d(self.position))
+    def tick(self):
+        super(self.__class__, self).tick()
+        self.draw()
+        
 class Enemy(Being):
     """ A class for the enemy. Will have to have some sort of AI. """
 
@@ -421,6 +449,7 @@ class GuiText(GuiItem):
     def tick(self):
         super(self.__class__, self).tick()
         self.draw(self.position_x,self.position_y)
+
 
 class Manager(object):
     """ The Manager of the whole game?

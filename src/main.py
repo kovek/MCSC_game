@@ -6,26 +6,45 @@ from classes import animation_loop
 
 # set up pygame
 pygame.init()
-
+# this bypasses the resolution selection and makes it 1080p by default, get rekt peasants
+bypass = 1
 window_size_h = 0
 window_size_v = 0
-print "Sup m8 this game runs only at resolutions above 1440x900, umad ppl stuck in 2010? XD"
-# get input for horizontal size, get new one if below 1440 px
-print "Gimme window horizontal size in pixels:"
-window_size_h = input()
-while window_size_h < 1440:
-    print "U 'avin a giggle m8? Gimme horizontal size at least 1440"
-    window_size_h = input()
-# get input for vertical size, get new one if below 900 px
-print "Gimme window vertical size in pixels:"
-window_size_v = input()
-while window_size_v < 900:
-    print "U 'avin a giggle m8? Gimme vertical size at least 900"
-    window_size_v = input()
+sun_degree = 0
+if bypass == 0:
+    print "Sup m8 this game runs only at resolutions above 1440x900, umad ppl stuck in 2010? XD"
+    # get input for horizontal size, get new one if below 1440 px or not an int
+    print "Gimme window horizontal size in pixels:"
+    while True:
+        try:
+            window_size_h = input()
+        except:
+            print "U 'avin a giggle m8? Gimme horizontal size as an int, at least 1440"
+        else:
+            if window_size_h >= 1440:  
+                break
+            else:
+                print "U 'avin a giggle m80? Gimme horizontal size at least 1440"
+                pass
+    print "Gimme window vertical size in pixels:"
+    # get input for vertical size, get new one if below 900 px or not an int
+    while True:
+        try:
+            window_size_v = input()
+        except:
+            print "U 'avin a giggle m8? Gimme vertical size as an int, at least 900"
+        else:
+            if window_size_v >= 900:
+                break
+            else:
+                print "U 'avin a giggle m80? Gimme vertical size at least 900"
+                pass
+elif bypass == 1:
+    window_size_h = 1920
+    window_size_v = 1080
 # offsets for gui items to remain at the same relative place regardless of screen size
 offset_h = (window_size_h-1440)/2
 offset_v = (window_size_v-900)
-
 is_online = False
 
 # set up the window
@@ -86,7 +105,8 @@ s2_text = classes.GuiText('S2',740+offset_h,810+offset_v)
 s3_text = classes.GuiText('S3',810+offset_h,810+offset_v)
 s4_text = classes.GuiText('S4',880+offset_h,810+offset_v)
 boss = classes.Enemy()
-
+sun = classes.Star()
+player_shadow = classes.Shadow(player,'player')
 
 focus = player
 
@@ -95,7 +115,7 @@ State = Enum('State', 'playing menu paused')
 state = State.playing
 
 # things_on_screen contains everything that must be drawn by pygame.
-things_on_screen = [player, hp_container, mana_container, enemy_bar_container,square0,square1,square2,square3,square4,square5,hp_bar,mana_bar,enemy_bar,hp_text,mana_text,lh_text,rh_text,s1_text,s2_text,s3_text,s4_text,boss]
+things_on_screen = [player, player_shadow, hp_container, mana_container, enemy_bar_container,square0,square1,square2,square3,square4,square5,hp_bar,mana_bar,enemy_bar,hp_text,mana_text,lh_text,rh_text,s1_text,s2_text,s3_text,s4_text,boss, sun]
 
 # run the game loop
 while True:
