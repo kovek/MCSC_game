@@ -29,13 +29,22 @@ DAY_TIME = 36000
 class OnScreenImage(object):
     """ Anything that is on the screen and needs an image file to be drawn """
 
-    def __init__(self):
-        pass
-    def draw(self):
-        pass
-    def tick(self):
-        self.frame = (self.frame+1)%self.FRAME_NUMBERS
-        return
+    def __init__(self, width, height, x, y):
+		self.width = width
+		self.height = height
+		self.x = x
+		self.y = y
+	def __repr__(self):
+		return "An image of" + str(self.width) + "by" + str(self.height) + "positioned at" + str(self.x) + "," + str(self.y )
+	#The bodycenter is the coordinates fed into the pygame draw command.
+	def low_body_center(self):
+		u = self.x - self.width/2
+		v = self.y + self.height
+		return str(u) + "," + str(v)
+	def body_center(self):
+		u = self.x - self.width/2
+		v = self.y - self.height/2
+		return str(u) + "," + str(v)
 
 
 class OnScreenImageGui(object):
