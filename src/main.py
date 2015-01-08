@@ -106,7 +106,7 @@ s3_text = classes.GuiText('S3',810+offset_h,810+offset_v)
 s4_text = classes.GuiText('S4',880+offset_h,810+offset_v)
 boss = classes.Enemy()
 sun = classes.Star()
-player_shadow = classes.Shadow(player,'player')
+player_shadow = classes.Shadow(player,'player',sun)
 
 focus = player
 

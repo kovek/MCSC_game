@@ -6,7 +6,7 @@ import numpy
 import math
 import random
 
-# set up pygame, random number generator, font and colors
+# set up pygame, random number generator, font, colors and math constants
 pygame.init()
 pygame.font.init()
 random.seed()
@@ -18,8 +18,9 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
+PI = 3.14159265
 
-# variables for target framerate, milliseconds per animation frame,jump speed of character, and time for 1 day (in ms)
+# variables for target framerate, milliseconds per animation frame,jump speed of character, and time for 1 day (in ms = 6 min)
 FRAMES_PER_SECOND = 500
 MS_PER_FRAME = 200
 JUMP_SPEED = 1.5
@@ -163,11 +164,11 @@ def animation_loop(animation_counter):
             animation_counter += 1
         return animation_counter
 
-# this function is the angle at which the sun is, moves by 1 degree every second
-def sun_loop(sun_degree):
-    if (pygame.time.get_ticks()//(DAY_TIME/360) - sun_degree > 0):
-        sun_degree +=1
-    return sun_degree
+# this function is the angle at which the sun is, moves by 1 degree every second in 0.01 degree steps (polling every 10ms)
+def sun_loop(sun_angle):
+    if (pygame.time.get_ticks()//(DAY_TIME/36000) - sun_angle > 0):
+        sun_angle +=1
+    return sun_angle
 
 def translate(x,y,z):
     """ Return a translation matrix. """
@@ -249,6 +250,8 @@ class Player(Being):
     """ """
 
     def __init__(self):
+        self.width = 20
+        self.height = 50
         self.time_anim = 0
         self.time_anim_temp = 0
         self.framepos = 0
@@ -361,22 +364,51 @@ class Player(Being):
 class Star(Being):
     def __init__(self):
         self.angle = 0
+        self.angle_actual = 0
     def increment_angle(self):
         self.angle = sun_loop(self.angle)
+        # division by 100 because we are getting a result in 100ths of degree from the polling
+        self.angle_actual = float(float(self.angle)/100.0)%360
+        print self.angle_actual
     def tick(self):
         super(self.__class__, self).tick()
         self.increment_angle()
         
 # this is the shadow class for various shadows
 class Shadow(Being):
-    def __init__(self,owner,owner_string):
+    def __init__(self,owner,owner_string,source):
         self.shadow_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', owner_string+'_shadow.png'))
         self.owner = owner
-    def update_pos(self,owner):
-        self.position=owner.position
+        self.source = source
+    def update_pos(self,owner,source):
+        if source.angle_actual >=0.0 and source.angle_actual <=90.0:
+            self.position=owner.position
+            self.position_list = list(self.position)
+            owner.position_list = list(owner.position)
+            try:
+                self.position_list[0] = owner.position_list[0]-(owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))
+            except ArithmeticError:
+                 self.position_list[0] = owner.position_list[0]
+            self.position = tuple(self.position_list)
+        elif source.angle_actual >90.0 and source.angle_actual <=180.0:
+            self.position=owner.position
+    def update_scale(self,owner,source):
+        if source.angle_actual >=0.0 and source.angle_actual <=90.0:
+            try:
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.width+owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),5))
+            except:
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,5))
+        elif source.angle_actual >90.0 and source.angle_actual <=180.0:
+            try:
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.width+owner.height*abs(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),5))
+            except:
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,5))
+        elif source.angle_actual >180.0:
+            self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, 0,0)
     def draw(self,*position):
-        self.update_pos(self.owner)
-        screen.blit(self.shadow_image, pos_to_2d(self.position))
+        self.update_pos(self.owner,self.source)
+        self.update_scale(self.owner,self.source)
+        screen.blit(self.shadow_image_scaled, pos_to_2d(self.position))
     def tick(self):
         super(self.__class__, self).tick()
         self.draw()
