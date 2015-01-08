@@ -81,7 +81,7 @@ pygame.display.update()
 
 # initialization of every element of the game (player, enemies, gui items)
 ###this should be moved to some other class eventually
-player = classes.Player()
+player = classes.Player(20,50)
 square_position_x = [510+offset_h,580+offset_h,670+offset_h,740+offset_h,810+offset_h,880+offset_h]
 hp_container = classes.GuiStatic('bar_container.png',20+offset_h,830+offset_v)
 mana_container = classes.GuiStatic('bar_container.png',970+offset_h,830+offset_v)
@@ -104,9 +104,10 @@ s1_text = classes.GuiText('S1',670+offset_h,810+offset_v)
 s2_text = classes.GuiText('S2',740+offset_h,810+offset_v)
 s3_text = classes.GuiText('S3',810+offset_h,810+offset_v)
 s4_text = classes.GuiText('S4',880+offset_h,810+offset_v)
-boss = classes.Enemy()
+boss = classes.Enemy(100,25)
 sun = classes.Star()
 player_shadow = classes.Shadow(player,'player',sun)
+boss_shadow = classes.Shadow(boss,'boss',sun)
 
 focus = player
 
@@ -115,7 +116,7 @@ State = Enum('State', 'playing menu paused')
 state = State.playing
 
 # things_on_screen contains everything that must be drawn by pygame.
-things_on_screen = [player, player_shadow, hp_container, mana_container, enemy_bar_container,square0,square1,square2,square3,square4,square5,hp_bar,mana_bar,enemy_bar,hp_text,mana_text,lh_text,rh_text,s1_text,s2_text,s3_text,s4_text,boss, sun]
+things_on_screen = [player, player_shadow, hp_container, mana_container, enemy_bar_container,square0,square1,square2,square3,square4,square5,hp_bar,mana_bar,enemy_bar,hp_text,mana_text,lh_text,rh_text,s1_text,s2_text,s3_text,s4_text,boss,sun]
 
 # run the game loop
 while True:

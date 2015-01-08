@@ -24,12 +24,20 @@ PI = 3.14159265
 FRAMES_PER_SECOND = 500
 MS_PER_FRAME = 200
 JUMP_SPEED = 1.5
-DAY_TIME = 36000
+DAY_TIME = 360000
 
 class OnScreenImage(object):
     """ Anything that is on the screen and needs an image file to be drawn """
 
-    def __init__(self, width, height, x, y):
+    def __init__(self):
+        pass
+    def draw(self):
+        pass
+    def tick(self):
+        self.frame = (self.frame+1)%self.FRAME_NUMBERS
+        return
+
+    """def __init__(self, width, height, x, y):
 		self.width = width
 		self.height = height
 		self.x = x
@@ -44,8 +52,7 @@ class OnScreenImage(object):
 	def body_center(self):
 		u = self.x - self.width/2
 		v = self.y - self.height/2
-		return str(u) + "," + str(v)
-
+		return str(u) + "," + str(v)"""
 
 class OnScreenImageGui(object):
     pass
@@ -258,9 +265,9 @@ def pos_to_2d(position):
 class Player(Being):
     """ """
 
-    def __init__(self):
-        self.width = 20
-        self.height = 50
+    def __init__(self,width,height):
+        self.width = width
+        self.height = height
         self.time_anim = 0
         self.time_anim_temp = 0
         self.framepos = 0
@@ -273,6 +280,7 @@ class Player(Being):
             K_a: (-1,0,0),
             K_s: (0,0,1),
             K_d: (1,0,0),
+            K_SPACE: (0,0,0)
         }
         self.player_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'player_anim.png'))
         self.jumping = False
@@ -293,12 +301,12 @@ class Player(Being):
         # if the value is greater, the horizontal position of the part of the spritesheet that serves for the character's sprite is modified to animate it) <- if you do not understand this it's ok
         self.time_anim_temp=animation_loop(self.time_anim)
         if self.time_anim_temp > self.time_anim:
-            if self.framepos == 180:
+            if self.framepos == 9*self.width:
                 self.framepos = 0
                 self.frameposjump = 0
             else:
-                self.framepos = self.framepos+20
-                self.frameposjump = self.frameposjump+20
+                self.framepos = self.framepos+self.width
+                self.frameposjump = self.frameposjump+self.width
         else:
             pass
         # dictionary to know which velocity tuple corresponds to which vertical position on the sprite sheet that will be used for the character's sprite <- if you do not understand this it's ok
@@ -315,19 +323,18 @@ class Player(Being):
             }
         # sets the character's sprite to the default non-moving player sprite if velocity is 0
         if self.velocity == (0,0,0):
-            screen.blit(self.player_image, pos_to_2d(self.position), (0,50*self.character_sprites[self.velocity],20,50) )
+            screen.blit(self.player_image, pos_to_2d(self.position), (0,self.height*self.character_sprites[self.velocity],self.width,self.height) )
         # if it is not, sets the character's sprite to the corresponding animation sprite
         else:
-            screen.blit(self.player_image, pos_to_2d(self.position), (self.framepos,50*self.character_sprites[self.velocity],20,50) )
+            screen.blit(self.player_image, pos_to_2d(self.position), (self.framepos,self.height*self.character_sprites[self.velocity],self.width,self.height) )
 
         # if jumping, sets the character's sprite to the corresponding jumping animation sprite
         if self.jumping == False:
             self.frameposjump = 0
         # copies the temporary value to the actual value for animation purposes, so they are equal again for the time specified in MS_PER_FRAME and the frames don't change
         elif self.jumping == True:
-            screen.blit(self.player_image, pos_to_2d(self.position), (self.frameposjump,50*9,20,50) )
+            screen.blit(self.player_image, pos_to_2d(self.position), (self.frameposjump,self.height*9,self.width,self.height) )
 
-        
         self.time_anim = self.time_anim_temp
 
 
@@ -336,11 +343,11 @@ class Player(Being):
 
     def key_event(self, event):
         if event.type == KEYDOWN:
-            self.pressed_keys.append(event.key)
+            if event.key in self.keys:
+                self.pressed_keys.append(event.key)
         elif event.type == KEYUP:
             if event.key in self.pressed_keys:
                 self.pressed_keys.remove(event.key)
-
 
     def tick(self):
         super(self.__class__, self).tick()
@@ -374,10 +381,11 @@ class Star(Being):
     def __init__(self):
         self.angle = 0
         self.angle_actual = 0
+        self.angle_initial = 150
     def increment_angle(self):
         self.angle = sun_loop(self.angle)
         # division by 100 because we are getting a result in 100ths of degree from the polling
-        self.angle_actual = float(float(self.angle)/100.0)%360
+        self.angle_actual = (self.angle_initial+float(float(self.angle)/100.0))%360
         print self.angle_actual
     def tick(self):
         super(self.__class__, self).tick()
@@ -386,33 +394,54 @@ class Star(Being):
 # this is the shadow class for various shadows
 class Shadow(Being):
     def __init__(self,owner,owner_string,source):
-        self.shadow_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', owner_string+'_shadow.png'))
+        self.shadow_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'shadows', owner_string+'_shadow.png'))
         self.owner = owner
         self.source = source
+        self.height = owner.width/4
+        
     def update_pos(self,owner,source):
+        self.position_3d = owner.position
+        self.position_3d_list = list(self.position_3d)
+        self.owner_position_list = list(owner.position)
+        self.position_3d_list[1] = 0
         if source.angle_actual >=0.0 and source.angle_actual <=90.0:
-            self.position=pos_to_2d(owner.position)
-            self.position_list = list(self.position)
+            try:
+                self.position_3d_list[0] = self.owner_position_list[0]-self.owner_position_list[1]*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))
+            except ArithmeticError:
+                self.position_3d_list[0] = self.owner_position_list[0]-10000
+        elif source.angle_actual >90.0 and source.angle_actual <=180.0:
+            try:
+                self.position_3d_list[0] = self.owner_position_list[0]+self.owner_position_list[1]*abs((math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))
+            except ArithmeticError:
+                self.position_3d_list[0] = self.owner_position_list[0]+10000
+        self.position_3d = tuple(self.position_3d_list)
+        
+        self.position = pos_to_2d(self.position_3d)
+        self.position_list = list(self.position)
+        if source.angle_actual >=0.0 and source.angle_actual <=90.0:    
             try:
                 self.position_list[0] = self.position_list[0]-(owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))
             except ArithmeticError:
                  self.position_list[0] = self.position_list[0]-10000
-            self.position = tuple(self.position_list)
         elif source.angle_actual >90.0 and source.angle_actual <=180.0:
-            self.position=pos_to_2d(owner.position)
+            pass
+        self.position_list[1] = self.position_list[1]+owner.height-self.height/2
+        self.position = tuple(self.position_list)
+    
     def update_scale(self,owner,source):
+        self.position = pos_to_2d(owner.position)
         if source.angle_actual >=0.0 and source.angle_actual <=90.0:
             try:
-                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.width+owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),5))
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.width+owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),self.height))
             except:
-                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,5))
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,self.height))
         elif source.angle_actual >90.0 and source.angle_actual <=180.0:
             try:
-                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.width+owner.height*abs(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),5))
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.width+owner.height*abs(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),self.height))
             except:
-                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,5))
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,self.height))
         elif source.angle_actual >180.0:
-            self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, 0,0)
+            self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (0,0))
     def draw(self,*position):
         self.update_scale(self.owner,self.source)
         self.update_pos(self.owner,self.source)
@@ -424,19 +453,21 @@ class Shadow(Being):
 class Enemy(Being):
     """ A class for the enemy. Will have to have some sort of AI. """
 
-    def __init__(self):
+    def __init__(self,width,height):
+        self.width = width
+        self.height = height
         # initializes enemy sprite from file
         self.gui_item = pygame.image.load(os.path.join('..', 'data', 'sprites', 'bosses', 'boss.png'))
         # sets x and y position for enemy to random values within the window
-        self.position_x = random.randint(0,1340)
-        self.position_y = random.randint(0,700)
+        self.position = (random.randint(-100,100),random.randint(-100,100),random.randint(-100,100))
+        self.position = pos_to_2d(self.position)
     # draws enemy at (x,y) coordinates
-    def draw(self,position_x,position_y):
-      screen.blit(self.gui_item, (self.position_x, self.position_y))
+    def draw(self,position):
+      screen.blit(self.gui_item, self.position)
 
     def tick(self):
         super(self.__class__, self).tick()
-        self.draw(self.position_x,self.position_y)
+        self.draw(self.position)
 
 
 class GuiStatic(GuiItem):
