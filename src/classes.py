@@ -381,7 +381,7 @@ class Star(Being):
     def __init__(self):
         self.angle = 0
         self.angle_actual = 0
-        self.angle_initial = 150
+        self.angle_initial = 0
     def increment_angle(self):
         self.angle = sun_loop(self.angle)
         # division by 100 because we are getting a result in 100ths of degree from the polling
@@ -407,12 +407,12 @@ class Shadow(Being):
         if source.angle_actual >=0.0 and source.angle_actual <=90.0:
             try:
                 self.position_3d_list[0] = self.owner_position_list[0]-self.owner_position_list[1]*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))
-            except ArithmeticError:
+            except:
                 self.position_3d_list[0] = self.owner_position_list[0]-10000
         elif source.angle_actual >90.0 and source.angle_actual <=180.0:
             try:
                 self.position_3d_list[0] = self.owner_position_list[0]+self.owner_position_list[1]*abs((math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))
-            except ArithmeticError:
+            except:
                 self.position_3d_list[0] = self.owner_position_list[0]+10000
         self.position_3d = tuple(self.position_3d_list)
         
@@ -421,7 +421,7 @@ class Shadow(Being):
         if source.angle_actual >=0.0 and source.angle_actual <=90.0:    
             try:
                 self.position_list[0] = self.position_list[0]-(owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))
-            except ArithmeticError:
+            except:
                  self.position_list[0] = self.position_list[0]-10000
         elif source.angle_actual >90.0 and source.angle_actual <=180.0:
             pass
@@ -439,7 +439,7 @@ class Shadow(Being):
             try:
                 self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.width+owner.height*abs(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),self.height))
             except:
-                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,self.height))
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,self.height))                       
         elif source.angle_actual >180.0:
             self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (0,0))
     def draw(self,*position):
@@ -456,18 +456,77 @@ class Enemy(Being):
     def __init__(self,width,height):
         self.width = width
         self.height = height
+        self.time_anim = 0
+        self.time_anim_temp = 0
+        self.framepos = 0
+        self.position = (0,0,0)
+        self.velocity = (0,0,0)
+        self.velocity_randomizer = 8
         # initializes enemy sprite from file
-        self.gui_item = pygame.image.load(os.path.join('..', 'data', 'sprites', 'bosses', 'boss.png'))
+        self.enemy_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'bosses', 'boss.png'))
         # sets x and y position for enemy to random values within the window
-        self.position = (random.randint(-100,100),random.randint(-100,100),random.randint(-100,100))
-        self.position = pos_to_2d(self.position)
-    # draws enemy at (x,y) coordinates
-    def draw(self,position):
-      screen.blit(self.gui_item, self.position)
+        self.position = (random.randint(-100,100),0,random.randint(-100,100))
+
+    # the motion is random for now
+    def randomize_parameters(self):
+        self.randomize_chance = random.randint(0,100)
+        if self.randomize_chance == 0:
+            self.velocity_randomizer = random.randint(0,8)
+            
+    def draw(self):
+        self.velocity_random_assignment = {
+        0: (-1,0,1),
+        1: (1,0,1),
+        2: (-1,0,-1),
+        3: (1,0,-1),
+        4: (0,0,1),
+        5: (0,0,-1),
+        6: (-1,0,0),
+        7: (1,0,0),
+        8: (0,0,0)
+        }
+        # this resets the 3D velocity tuple
+        self.velocity = self.velocity_random_assignment[self.velocity_randomizer]
+        # this gets a temporary value for animation purposes and compares it to the existing value to see if it is greater (i.e. the required time MS_PER_FRAME has passed)
+        # if the value is greater, the horizontal position of the part of the spritesheet that serves for the character's sprite is modified to animate it) <- if you do not understand this it's ok
+        self.time_anim_temp=animation_loop(self.time_anim)
+        if self.time_anim_temp > self.time_anim:
+            if self.framepos == 9*self.width:
+                self.framepos = 0
+            else:
+                self.framepos = self.framepos+self.width
+        else:
+            pass
+        # dictionary to know which velocity tuple corresponds to which vertical position on the sprite sheet that will be used for the character's sprite <- if you do not understand this it's ok
+        self.character_sprites = {
+            (-1,0,1): 0,
+            (1,0,1): 1,
+            (-1,0,-1): 2,
+            (1,0,-1): 3,
+            (0,0,1): 4,
+            (0,0,-1): 5,
+            (-1,0,0): 6,
+            (1,0,0): 7,
+            (0,0,0): 8
+            }
+        # sets the character's sprite to the default non-moving player sprite if velocity is 0
+        if self.velocity == (0,0,0):
+                screen.blit(self.enemy_image, pos_to_2d(self.position), (0,self.height*self.character_sprites[self.velocity],self.width,self.height) )
+        # if it is not, sets the character's sprite to the corresponding animation sprite
+        else:
+                screen.blit(self.enemy_image, pos_to_2d(self.position), (self.framepos,self.height*self.character_sprites[self.velocity],self.width,self.height) )
+
+        self.time_anim = self.time_anim_temp
+        self.move()
+
+    def move(self):
+            self.position = tuple(map(add, self.position, self.velocity)) # Add movement to position
 
     def tick(self):
         super(self.__class__, self).tick()
-        self.draw(self.position)
+        self.randomize_parameters()
+        self.draw()
+
 
 
 class GuiStatic(GuiItem):
