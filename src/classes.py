@@ -26,6 +26,234 @@ MS_PER_FRAME = 200
 JUMP_SPEED = 1.5
 DAY_TIME = 360000
 
+class Render(object):
+	def __init__(self, parent, source):
+		self.parent = parent
+		self.source = source
+        #self.player_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'player_anim.png'))
+		self.pygame = self.parent.pygame
+		self.player_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'player_anim.png'))
+		self.image = pygame.image.load(Resources[self.source]['spritesheet_file'])
+	
+	def tick(self):
+		position = self.parent.components['physics'].position
+		offset = Resources[self.source]['offset']
+		
+		screen.blit(self.image,
+			pos_to_2d(self.parent.components['physics'].position),
+
+
+		)
+
+class Physics(object):
+	def __init__(self, parent, position, velocity=[0,0,0] ):
+		self.parent = parent
+		self.position = position
+		self.velocity = velocity
+
+	def tick(self):
+		for i in xrange(3):
+			self.position[i] += self.velocity[i]
+
+		# Acceleration of gravity
+		self.velocity[2] = self.velocity[2]*1 + 1.0/2*(-6.8)*((1/FRAMES_PER_SECOND)**2)
+		self.velocity[2] = self.velocity[2] -6.8*1/FRAMES_PER_SECOND
+		print self.position
+
+class PhysicsEngine(object):
+	things_on_field = []
+
+import itertools
+class Collision(object):
+	def __init__(self, parent, source):
+		self.parent = parent
+		self.source = source
+
+
+		# needed to find all 8 corners of a box around a point
+		self.permutations = []
+		for subset in itertools.combinations_with_replacement([-1,1], 3):
+			self.permutations.append(subset)
+		for subset in itertools.combinations_with_replacement([1,-1], 3):
+			self.permutations.append(subset)
+
+	def tick(self):
+		bounds = Resources[self.source]['box_size']
+		position = self.parent.components['physics'].position
+		x_bounds = (position[0]-bounds[0]/2.0, position[0]+bounds[0]/2.0)
+		y_bounds = (position[1]-bounds[1]/2.0, position[1]+bounds[1]/2.0)
+		z_bounds = (position[2]-bounds[2]/2.0, position[2]+bounds[2]/2.0)
+		list_of_colliding_with_self = []
+		for item in PhysicsEngine.things_on_field:
+			item_position = item.components['physics'].position	
+			box_size = Resources[item.name].box_size
+			points = []
+			
+			for corner in self.permutations:
+				points.append( [
+					position[0] + 1/2.0 * corner[0] * box_size[0],
+					position[1] + 1/2.0 * corner[1] * box_size[1],
+					position[2] + 1/2.0 * corner[2] * box_size[2],
+				] )
+
+			for point in points:
+				if x_bounds[0] < point[0] < x_bounds[0]:
+					if y_bounds[0] < point[1] < y_bounds[0]:
+						if x_bounds[2] < point[2] < _bounds[2]:
+							list_of_colliding_with_self.append(item)
+		for item in list_of_colliding_with_self:
+			CollisionsPossible.collision(self.parent.name, item.name)(self.parent, item)
+
+class CollisionsPossible(object):
+	def __init__(self):
+		pass
+
+	def __getitem__(self, name):
+		return getattr(self, name)
+
+	def collision(self, one, two):
+		return self[str(one) + '_with_' + str(two)]
+
+	def Tree_with_Player(self, tree, player):
+		print 'tree gives shadow to player'
+
+	def Wall_with_Player(self, wall, player):
+		# Push the character off
+
+		# k is the distance we have to push the player off
+		k = numpy.dot(player.components['physics'].position, wall.direction) + numpy.dot(player.components['collision'].box_size, wall.direction)/2.0 - ( numpy.dot(wall.components['physics'].position, wall.direction) - numpy.dot(wall.components['collision'].box_size, wall.direction)/2.0 )
+
+		player.components['physics'].position = map(add,
+			player.components['physics'].position,
+			[x* (k) for x in wall.direction] )
+
+class Battlefield(object):
+	def __init__(self):
+		self.components = {
+				"render": Render("Battlefield"),
+				"physics": {position: (0,0,0)}
+			}
+
+
+		pass
+
+	def tick(self):
+		pass
+
+
+class Controls(object):
+	def __init__(self, parent):
+		self.parent = parent
+		self.pygame = None
+		self.pressed_keys = []
+
+		self.keys = {
+            K_w: [0,0,-1],
+            K_a: [-1,0,0],
+            K_s: [0,0,1],
+            K_d: [1,0,0],
+            K_SPACE: [0,0,0]
+        }
+
+	def tick(self):
+		for event in pygame.event.get():
+			if event.type == QUIT:
+				pygame.quit()
+				sys.exit()
+
+			if event.type == KEYDOWN:
+				if event.key == K_ESCAPE:
+					# Depending of what is going on, we will do different things.
+					if state == State.playing:
+						# If not online, stop game.
+						if not is_online:
+							state = State.paused
+
+						classes.PauseMenu.show()
+
+						# put pause menu to focus.
+						focus = classes.PauseMenu
+
+						state = State.paused
+					elif state == State.menu or state == State.paused:
+						# send the escape event to menu. It will 'go back' if it can. If not, then it will remove the pause menu.
+						if focus.escape_pressed() == "close_menu":
+							pass
+			self.key_event(event)
+
+		for key in self.pressed_keys:
+			if key in [K_w, K_a, K_s, K_d]:
+				self.parent.components['physics'].velocity = self.keys[key]
+			elif key is K_SPACE:
+				if self.parent.components['physics'].velocity[1] is 0:
+					self.parent.components['physics'].velocity[1] = 2
+			else:
+				pass
+
+	def key_event(self, event):
+		if event.type == KEYDOWN:
+			if event.key in self.keys:
+				self.pressed_keys.append(event.key)
+		elif event.type == KEYUP:
+			if event.key in self.pressed_keys:
+				self.pressed_keys.remove(event.key)
+
+class Wall(object):
+	def __init__(self, position, direction):
+		self.physics = {'position': position}
+		self.direction = direction
+		self.components = {
+			"collision": Collision(self),
+		}
+
+	def tick(self):
+		pass
+	
+
+class Warrior(object):
+	def __init__(self, pygame):
+		position = [0,0,0]
+		self.pygame = pygame
+		self.components = {
+			'physics': Physics(self, position),
+			'collision': Collision(self, "Warrior"),
+			'controls': Controls(self),
+			'render': Render(self, "Warrior")
+		}
+	
+	def tick(self):
+		for name, component in self.components.iteritems():
+				component.tick()
+
+class Assassin(object):
+	def __init__(self, parent):
+		position = (0,0,0)
+		box = (2,2,2)
+		self.components = {
+			'physics': Physics(position),
+			'collision': Collision(box),
+			'render': Render("Assassin")
+		}
+	
+	def tick(self):
+		pass		
+
+import yaml
+class ResourcesClass(object):
+	def __init__(self):
+		self.data = {}
+		self.all_data = yaml.load( file('../data/resources.yaml') )
+	
+	def __getitem__(self, x):
+		if x not in self.data:
+			self.data[x] = self.all_data.__getitem__(x)
+		return self.data[x]
+
+Resources = ResourcesClass()
+
+
+
+
 class OnScreenImage(object):
     """ Anything that is on the screen and needs an image file to be drawn """
 
@@ -251,7 +479,8 @@ camera_matrix = numpy.dot(perspectiveMatrix, camera_matrix)
 def pos_to_2d(position):
     """ Transform the current <x,y,z> point to a <x,y> point that will appear
         on the screen. That means we apply transformations to the point. """
-    out = numpy.dot(camera_matrix, list(position+(1,)) )
+		
+    out = numpy.dot(camera_matrix, position+[1] )
     for i in range(len(out)):
         out[i] /= out[3]
     out[0] *= window_size_h
@@ -275,13 +504,6 @@ class Player(Being):
         self.position = (0,0,0)
         self.velocity = (0,0,0)
         self.pressed_keys = []
-        self.keys = {
-            K_w: (0,0,-1),
-            K_a: (-1,0,0),
-            K_s: (0,0,1),
-            K_d: (1,0,0),
-            K_SPACE: (0,0,0)
-        }
         self.player_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'player_anim.png'))
         self.jumping = False
         self.velocity_up = 0
@@ -294,7 +516,7 @@ class Player(Being):
             if key is not K_SPACE:
                 self.velocity = tuple(map(add,self.velocity,self.keys[key]))
 
-        edges = [list(pos_to_2d( (-250,0,-250) )), list(pos_to_2d( (250,0,-250) )), list(pos_to_2d( (250,0,250) )), list(pos_to_2d( (-250,0,250) )) ]
+        #edges = [list(pos_to_2d( (-250,0,-250) )), list(pos_to_2d( (250,0,-250) )), list(pos_to_2d( (250,0,250) )), list(pos_to_2d( (-250,0,250) )) ]
         pygame.draw.polygon(screen, (0,0,255), edges )
 
         # this gets a temporary value for animation purposes and compares it to the existing value to see if it is greater (i.e. the required time MS_PER_FRAME has passed)
@@ -323,31 +545,26 @@ class Player(Being):
             }
         # sets the character's sprite to the default non-moving player sprite if velocity is 0
         if self.velocity == (0,0,0):
-            screen.blit(self.player_image, pos_to_2d(self.position), (0,self.height*self.character_sprites[self.velocity],self.width,self.height) )
+            #screen.blit(self.player_image, pos_to_2d(self.position), (0,self.height*self.character_sprites[self.velocity],self.width,self.height) )
+			pass
         # if it is not, sets the character's sprite to the corresponding animation sprite
         else:
-            screen.blit(self.player_image, pos_to_2d(self.position), (self.framepos,self.height*self.character_sprites[self.velocity],self.width,self.height) )
+            #screen.blit(self.player_image, pos_to_2d(self.position), (self.framepos,self.height*self.character_sprites[self.velocity],self.width,self.height) )
+			pass
 
         # if jumping, sets the character's sprite to the corresponding jumping animation sprite
         if self.jumping == False:
             self.frameposjump = 0
         # copies the temporary value to the actual value for animation purposes, so they are equal again for the time specified in MS_PER_FRAME and the frames don't change
         elif self.jumping == True:
-            screen.blit(self.player_image, pos_to_2d(self.position), (self.frameposjump,self.height*9,self.width,self.height) )
+            #screen.blit(self.player_image, pos_to_2d(self.position), (self.frameposjump,self.height*9,self.width,self.height) )
+			pass
 
         self.time_anim = self.time_anim_temp
 
 
     def move(self):
             self.position = tuple(map(add, self.position, self.velocity)) # Add movement to position
-
-    def key_event(self, event):
-        if event.type == KEYDOWN:
-            if event.key in self.keys:
-                self.pressed_keys.append(event.key)
-        elif event.type == KEYUP:
-            if event.key in self.pressed_keys:
-                self.pressed_keys.remove(event.key)
 
     def tick(self):
         super(self.__class__, self).tick()
@@ -386,7 +603,6 @@ class Star(Being):
         self.angle = sun_loop(self.angle)
         # division by 100 because we are getting a result in 100ths of degree from the polling
         self.angle_actual = (self.angle_initial+float(float(self.angle)/100.0))%360
-        print self.angle_actual
     def tick(self):
         super(self.__class__, self).tick()
         self.increment_angle()
@@ -416,7 +632,7 @@ class Shadow(Being):
                 self.position_3d_list[0] = self.owner_position_list[0]+10000
         self.position_3d = tuple(self.position_3d_list)
         
-        self.position = pos_to_2d(self.position_3d)
+        #self.position = pos_to_2d(self.position_3d)
         self.position_list = list(self.position)
         if source.angle_actual >=0.0 and source.angle_actual <=90.0:    
             try:
@@ -429,7 +645,7 @@ class Shadow(Being):
         self.position = tuple(self.position_list)
     
     def update_scale(self,owner,source):
-        self.position = pos_to_2d(owner.position)
+        #self.position = pos_to_2d(owner.position)
         if source.angle_actual >=0.0 and source.angle_actual <=90.0:
             try:
                 self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.width+owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),self.height))
@@ -460,10 +676,11 @@ class Enemy(Being):
         self.gui_item = pygame.image.load(os.path.join('..', 'data', 'sprites', 'bosses', 'boss.png'))
         # sets x and y position for enemy to random values within the window
         self.position = (random.randint(-100,100),random.randint(-100,100),random.randint(-100,100))
-        self.position = pos_to_2d(self.position)
+        #self.position = pos_to_2d(self.position)
     # draws enemy at (x,y) coordinates
     def draw(self,position):
-      screen.blit(self.gui_item, self.position)
+      #screen.blit(self.gui_item, self.position)
+	  pass
 
     def tick(self):
         super(self.__class__, self).tick()

@@ -78,10 +78,13 @@ screen.fill(BLACK)
 
 # draw the window onto the screen
 pygame.display.update()
+pygame.display.toggle_fullscreen()
 
 # initialization of every element of the game (player, enemies, gui items)
 ###this should be moved to some other class eventually
-player = classes.Player(20,50)
+player = classes.Warrior(pygame)
+player.components['controls'].pygame = pygame
+
 square_position_x = [510+offset_h,580+offset_h,670+offset_h,740+offset_h,810+offset_h,880+offset_h]
 hp_container = classes.GuiStatic('bar_container.png',20+offset_h,830+offset_v)
 mana_container = classes.GuiStatic('bar_container.png',970+offset_h,830+offset_v)
@@ -106,8 +109,8 @@ s3_text = classes.GuiText('S3',810+offset_h,810+offset_v)
 s4_text = classes.GuiText('S4',880+offset_h,810+offset_v)
 boss = classes.Enemy(100,25)
 sun = classes.Star()
-player_shadow = classes.Shadow(player,'player',sun)
-boss_shadow = classes.Shadow(boss,'boss',sun)
+#player_shadow = classes.Shadow(player,'player',sun)
+#boss_shadow = classes.Shadow(boss,'boss',sun)
 
 focus = player
 
@@ -116,7 +119,7 @@ State = Enum('State', 'playing menu paused')
 state = State.playing
 
 # things_on_screen contains everything that must be drawn by pygame.
-things_on_screen = [player, player_shadow, hp_container, mana_container, enemy_bar_container,square0,square1,square2,square3,square4,square5,hp_bar,mana_bar,enemy_bar,hp_text,mana_text,lh_text,rh_text,s1_text,s2_text,s3_text,s4_text,boss,sun]
+things_on_screen = [player, hp_container, mana_container, enemy_bar_container,square0,square1,square2,square3,square4,square5,hp_bar,mana_bar,enemy_bar,hp_text,mana_text,lh_text,rh_text,s1_text,s2_text,s3_text,s4_text,boss,sun]
 
 # run the game loop
 while True:
@@ -129,30 +132,5 @@ while True:
             thing.tick()
 
     # Handle events (keys)
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
-
-        if event.type == KEYDOWN:
-            if event.key == K_ESCAPE:
-                # Depending of what is going on, we will do different things.
-                if state == State.playing:
-                    # If not online, stop game.
-                    if not is_online:
-                        state = State.paused
-
-                    classes.PauseMenu.show()
-
-                    # put pause menu to focus.
-                    focus = classes.PauseMenu
-
-                    state = State.paused
-                elif state == State.menu or state == State.paused:
-                    # send the escape event to menu. It will 'go back' if it can. If not, then it will remove the pause menu.
-                    if focus.escape_pressed() == "close_menu":
-                        pass
-
-        focus.key_event(event)
     pygame.display.update()
 
