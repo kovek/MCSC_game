@@ -7,7 +7,7 @@ from classes import animation_loop
 # set up pygame
 pygame.init()
 # this bypasses the resolution selection and makes it 1080p by default, get rekt peasants
-bypass = 0
+bypass = 1
 window_size_h = 0
 window_size_v = 0
 sun_degree = 0

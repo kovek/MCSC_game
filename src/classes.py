@@ -282,8 +282,14 @@ class Player(Being):
             K_d: (1,0,0),
             K_SPACE: (0,0,0)
         }
+        self.pressed_mouse = []
+        """self.mouse = {
+            0: self.equipment_type[0],
+            1: self.equipment_type[1]
+        }"""
         self.player_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'player_anim.png'))
         self.jumping = False
+        self.attacking = True
         self.velocity_up = 0
 
     def draw(self):
@@ -291,7 +297,7 @@ class Player(Being):
         self.velocity = (0,0,0)
         # this looks for any key that has been pressed that is used for 2D movement and adds its tuple to the velocity to get the sum of the velocities
         for key in self.pressed_keys:
-            if key is not K_SPACE:
+            #if key is not K_SPACE:
                 self.velocity = tuple(map(add,self.velocity,self.keys[key]))
 
         edges = [list(pos_to_2d( (-250,0,-250) )), list(pos_to_2d( (250,0,-250) )), list(pos_to_2d( (250,0,250) )), list(pos_to_2d( (-250,0,250) )) ]
@@ -348,6 +354,12 @@ class Player(Being):
         elif event.type == KEYUP:
             if event.key in self.pressed_keys:
                 self.pressed_keys.remove(event.key)
+        """if event.type == MOUSEBUTTONDOWN:
+            if event.button in self.mouse:
+                self.pressed_mouse.append(event.button)
+        elif event.type == MOUSEBUTTONDOWN:
+            if event.button in self.mouse:
+                self.pressed_mouse.remove(event.button)"""
 
     def tick(self):
         super(self.__class__, self).tick()
@@ -376,15 +388,21 @@ class Player(Being):
             self.jumping = False
             self.velocity_up = 0
 
-# this is the star class for various stars
+# this is the star class for various stars that generate shadows
 class Star(Being):
+    # self
     def __init__(self):
+        # angle in 100ths of degrees (int)
         self.angle = 0
+        # actual angle in degrees (float)
         self.angle_actual = 0
+        # initial angle, CHANGE THIS TO SET INITIAL TIME OF DAY
         self.angle_initial = 0
+
+    # increment the angle (currently in 100th of a degree every time 10ms pass)
     def increment_angle(self):
         self.angle = sun_loop(self.angle)
-        # division by 100 because we are getting a result in 100ths of degree from the polling
+        # actual angle: takes the value in 100ths of a degree, divides it by 100 to get a value in degrees, adds the initial angle, and computes the congruent angle mod 360
         self.angle_actual = (self.angle_initial+float(float(self.angle)/100.0))%360
         print self.angle_actual
     def tick(self):
@@ -393,67 +411,96 @@ class Star(Being):
         
 # this is the shadow class for various shadows
 class Shadow(Being):
+    #self; owner is the thing that generates the shadow (its attributes are used extensively), owner_string is used to load the correct shadow, source is the stars (currently 1) that contribute to shadow generation
     def __init__(self,owner,owner_string,source):
         self.shadow_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'shadows', owner_string+'_shadow.png'))
         self.owner = owner
         self.source = source
         self.height = owner.width/4
-        
+    # updates the shadow's position    
     def update_pos(self,owner,source):
+        # using the owner's 3d position to compute the shadow's position offset when the owner jumps
+        # converting position 3d tuples into lists
         self.position_3d = owner.position
         self.position_3d_list = list(self.position_3d)
         self.owner_position_list = list(owner.position)
+        # shadow's height is always 0
         self.position_3d_list[1] = 0
+        # for angles between 0 and 90 degrees, the shadow moves towards the left when the owner jumps
         if source.angle_actual >=0.0 and source.angle_actual <=90.0:
+            # shadow's x-position is owner's x-position - owner's y-position * cot(angle)
             try:
                 self.position_3d_list[0] = self.owner_position_list[0]-self.owner_position_list[1]*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))
+            # if cot(angle) = infinity, cot(angle) = 10000 (arbitrarily large value)
             except:
-                self.position_3d_list[0] = self.owner_position_list[0]-10000
+                self.position_3d_list[0] = self.owner_position_list[0]-self.owner_position_list[1]*10000
+        # for angles between 90 and 180 degrees, the shadow moves towards the right when the owner jumps
         elif source.angle_actual >90.0 and source.angle_actual <=180.0:
+            # shadow's x-position is owner's x-position + owner's y-position * cot(angle)
             try:
                 self.position_3d_list[0] = self.owner_position_list[0]+self.owner_position_list[1]*abs((math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))
+            # if cot(angle) = infinity, cot(angle) = 10000 (arbitrarily large value)
             except:
-                self.position_3d_list[0] = self.owner_position_list[0]+10000
+                self.position_3d_list[0] = self.owner_position_list[0]+self.owner_position_list[1]*10000
+        # converting finished position 3d list into tuple
         self.position_3d = tuple(self.position_3d_list)
-        
+
+        # using the owner's 2d position to compute the shadow's position offset
+        # converting position 3d tuple into 2d tuple and into list
         self.position = pos_to_2d(self.position_3d)
         self.position_list = list(self.position)
-        if source.angle_actual >=0.0 and source.angle_actual <=90.0:    
+        # for angles between 0 and 90 degrees, the shadow's x-position has to be offset to the left by an amount equivalent to its length since it's to the left of the owner
+        if source.angle_actual >=0.0 and source.angle_actual <=90.0:
+            # shadow's x-position is its own x-position - its length, which is represented by: owner's height * cot(angle)
             try:
                 self.position_list[0] = self.position_list[0]-(owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))
+            # if cot(angle) = infinity, shadow's length is 10000
             except:
                  self.position_list[0] = self.position_list[0]-10000
+            # if cot(angle) is such that the shadow's length exceeds 10000, it becomes 10000
             else:
                 if (owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
-                    self.position_list[0] = self.position_list[0]+(owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))-10000+owner.width
+                    self.position_list[0] = self.position_list[0]+(owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))-10000
                     print "Corrected!"
+        # for angles between 90 and 180 degrees, the shadow's x-position does not need offset since it's to the right of the owner
         elif source.angle_actual >90.0 and source.angle_actual <=180.0:
             pass
+        # moving the shadow vertically to the owner's feet
         self.position_list[1] = self.position_list[1]+owner.height-self.height/2
+        # converting finished position tuple into list
         self.position = tuple(self.position_list)
     
     def update_scale(self,owner,source):
-        self.position = pos_to_2d(owner.position)
+        # for angles between 0 and 90 degrees, cot(angle) is positive and requires no adjustment
         if source.angle_actual >=0.0 and source.angle_actual <=90.0:
+            # shadow's length is equal to owner's height * cot(angle) and increased by owner's width (to make its minimum size the owner's width)
             try:
                 self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.width+owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),self.height))
+            # if cot(angle) = infinity, shadow's length is 10000 and increased by owner's width
             except:
-                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,self.height))
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.width+10000,self.height))
+            # if cot(angle) is such that the shadow's length exceeds 10000, it becomes 10000 and increased by owner's width
             else:
                 if (owner.width+owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
-                    self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,self.height))
+                    self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.width+10000,self.height))
                     print "Corrected!"
+        # for angles between 90 and 180 degrees, cot(angle) is negative and thus abs(cot(angle)) must be used
         elif source.angle_actual >90.0 and source.angle_actual <=180.0:
+            # shadow's length is equal to owner's height * abs(cot(angle)) and increased by owner's width (to make its minimum size the owner's width)
             try:
                 self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.width+owner.height*abs(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),self.height))
+            # if abs(cot(angle)) = infinity, shadow's length is 10000 and increased by owner's width
             except:
-                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,self.height))
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.width+10000,self.height))
+            # if cot(angle) is such that the shadow's length exceeds 10000, it becomes 10000 and increased by owner's width
             else:
                 if (owner.width+owner.height*abs(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
-                    self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,self.height))
+                    self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.width+10000,self.height))
                     print "Corrected!"
+        # for angles above 180 degrees, the shadow does not appear and thus its size becomes 0
         elif source.angle_actual >180.0:
             self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (0,0))
+    # finally we can update the scale and the position of the shadow and then draw it...
     def draw(self,*position):
         self.update_scale(self.owner,self.source)
         self.update_pos(self.owner,self.source)
