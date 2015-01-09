@@ -274,6 +274,7 @@ class Player(Being):
         self.frameposjump = 0
         self.position = (0,0,0)
         self.velocity = (0,0,0)
+        self.equipment_type = [0,0]
         self.pressed_keys = []
         self.keys = {
             K_w: (0,0,-1),
@@ -283,10 +284,10 @@ class Player(Being):
             K_SPACE: (0,0,0)
         }
         self.pressed_mouse = []
-        """self.mouse = {
-            0: self.equipment_type[0],
-            1: self.equipment_type[1]
-        }"""
+        self.mouse = {
+            'LEFT': self.equipment_type[0],
+            'RIGHT': self.equipment_type[1]
+        }
         self.player_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'player_anim.png'))
         self.jumping = False
         self.attacking = True
@@ -297,7 +298,6 @@ class Player(Being):
         self.velocity = (0,0,0)
         # this looks for any key that has been pressed that is used for 2D movement and adds its tuple to the velocity to get the sum of the velocities
         for key in self.pressed_keys:
-            #if key is not K_SPACE:
                 self.velocity = tuple(map(add,self.velocity,self.keys[key]))
 
         edges = [list(pos_to_2d( (-250,0,-250) )), list(pos_to_2d( (250,0,-250) )), list(pos_to_2d( (250,0,250) )), list(pos_to_2d( (-250,0,250) )) ]
@@ -348,18 +348,28 @@ class Player(Being):
             self.position = tuple(map(add, self.position, self.velocity)) # Add movement to position
 
     def key_event(self, event):
+        self.mouse_list = list(pygame.mouse.get_pressed())
+        self.mouse_list_dict = {
+            0: 'LEFT',
+            1: 'MIDDLE',
+            2: 'RIGHT'
+        }
+        for i in range(len(self.mouse_list)):
+            if self.mouse_list[i] == True:
+                if self.mouse_list_dict[i] in self.pressed_mouse:
+                    pass
+                else:
+                    if self.mouse_list_dict[i] in self.mouse:
+                        self.pressed_mouse.append(self.mouse_list_dict[i])
+            elif self.mouse_list[i] == False:
+                if self.mouse_list_dict[i] in self.pressed_mouse:
+                    self.pressed_mouse.remove(self.mouse_list_dict[i])
         if event.type == KEYDOWN:
             if event.key in self.keys:
                 self.pressed_keys.append(event.key)
         elif event.type == KEYUP:
             if event.key in self.pressed_keys:
                 self.pressed_keys.remove(event.key)
-        """if event.type == MOUSEBUTTONDOWN:
-            if event.button in self.mouse:
-                self.pressed_mouse.append(event.button)
-        elif event.type == MOUSEBUTTONDOWN:
-            if event.button in self.mouse:
-                self.pressed_mouse.remove(event.button)"""
 
     def tick(self):
         super(self.__class__, self).tick()
@@ -404,7 +414,7 @@ class Star(Being):
         self.angle = sun_loop(self.angle)
         # actual angle: takes the value in 100ths of a degree, divides it by 100 to get a value in degrees, adds the initial angle, and computes the congruent angle mod 360
         self.angle_actual = (self.angle_initial+float(float(self.angle)/100.0))%360
-        print self.angle_actual
+        """print self.angle_actual""" #debug
     def tick(self):
         super(self.__class__, self).tick()
         self.increment_angle()
@@ -461,7 +471,7 @@ class Shadow(Being):
             else:
                 if (owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
                     self.position_list[0] = self.position_list[0]+(owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))-10000
-                    print "Corrected!"
+                    """print "Corrected!""""" #debug
         # for angles between 90 and 180 degrees, the shadow's x-position does not need offset since it's to the right of the owner
         elif source.angle_actual >90.0 and source.angle_actual <=180.0:
             pass
@@ -483,7 +493,7 @@ class Shadow(Being):
             else:
                 if (owner.width+owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
                     self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.width+10000,self.height))
-                    print "Corrected!"
+                    """print "Corrected!""""" #debug
         # for angles between 90 and 180 degrees, cot(angle) is negative and thus abs(cot(angle)) must be used
         elif source.angle_actual >90.0 and source.angle_actual <=180.0:
             # shadow's length is equal to owner's height * abs(cot(angle)) and increased by owner's width (to make its minimum size the owner's width)
@@ -496,7 +506,7 @@ class Shadow(Being):
             else:
                 if (owner.width+owner.height*abs(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
                     self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.width+10000,self.height))
-                    print "Corrected!"
+                    """print "Corrected!""""" #debug
         # for angles above 180 degrees, the shadow does not appear and thus its size becomes 0
         elif source.angle_actual >180.0:
             self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (0,0))
