@@ -423,6 +423,10 @@ class Shadow(Being):
                 self.position_list[0] = self.position_list[0]-(owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))
             except:
                  self.position_list[0] = self.position_list[0]-10000
+            else:
+                if (owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
+                    self.position_list[0] = self.position_list[0]+(owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))-10000+owner.width
+                    print "Corrected!"
         elif source.angle_actual >90.0 and source.angle_actual <=180.0:
             pass
         self.position_list[1] = self.position_list[1]+owner.height-self.height/2
@@ -435,11 +439,19 @@ class Shadow(Being):
                 self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.width+owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),self.height))
             except:
                 self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,self.height))
+            else:
+                if (owner.width+owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
+                    self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,self.height))
+                    print "Corrected!"
         elif source.angle_actual >90.0 and source.angle_actual <=180.0:
             try:
                 self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.width+owner.height*abs(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),self.height))
             except:
-                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,self.height))                       
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,self.height))
+            else:
+                if (owner.width+owner.height*abs(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
+                    self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (10000,self.height))
+                    print "Corrected!"
         elif source.angle_actual >180.0:
             self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (0,0))
     def draw(self,*position):

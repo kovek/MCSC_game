@@ -7,7 +7,7 @@ from classes import animation_loop
 # set up pygame
 pygame.init()
 # this bypasses the resolution selection and makes it 1080p by default, get rekt peasants
-bypass = 1
+bypass = 0
 window_size_h = 0
 window_size_v = 0
 sun_degree = 0
@@ -116,7 +116,7 @@ State = Enum('State', 'playing menu paused')
 state = State.playing
 
 # things_on_screen contains everything that must be drawn by pygame.
-things_on_screen = [player, player_shadow, boss, boss_shadow, hp_container, mana_container, enemy_bar_container,square0,square1,square2,square3,square4,square5,hp_bar,mana_bar,enemy_bar,hp_text,mana_text,lh_text,rh_text,s1_text,s2_text,s3_text,s4_text,sun]
+things_on_screen = [player, boss, player_shadow, boss_shadow, hp_container, mana_container, enemy_bar_container,square0,square1,square2,square3,square4,square5,hp_bar,mana_bar,enemy_bar,hp_text,mana_text,lh_text,rh_text,s1_text,s2_text,s3_text,s4_text,sun]
 
 # run the game loop
 while True:
