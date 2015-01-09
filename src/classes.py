@@ -48,11 +48,11 @@ class OnScreenImage(object):
 	def low_body_center(self):
 		u = self.x - self.width/2
 		v = self.y + self.height
-		return str(u) + "," + str(v)
+		return (u,v)
 	def body_center(self):
 		u = self.x - self.width/2
 		v = self.y - self.height/2
-		return str(u) + "," + str(v)"""
+		return (u,v)"""
 
 class OnScreenImageGui(object):
     pass
