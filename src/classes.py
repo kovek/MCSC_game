@@ -272,9 +272,13 @@ class Player(Being):
         self.time_anim_temp = 0
         self.framepos = 0
         self.frameposjump = 0
+        self.lefthand_framepos = 0
+        self.righthand_framepos = 0
         self.position = (0,0,0)
         self.velocity = (0,0,0)
-        self.equipment_type = [0,0]
+        self.velocity_up = 0
+        self.equipment = ['Sword','Shield']
+        self.equipment_held = [0,0]
         self.pressed_keys = []
         self.keys = {
             K_w: (0,0,-1),
@@ -285,17 +289,18 @@ class Player(Being):
         }
         self.pressed_mouse = []
         self.mouse = {
-            'LEFT': self.equipment_type[0],
-            'RIGHT': self.equipment_type[1]
+            'LEFT': self.equipment[1],
+            'RIGHT': self.equipment[1]
         }
         self.player_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'player_anim.png'))
+        self.hand_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'hands_anim.png'))
         self.jumping = False
-        self.attacking = True
-        self.velocity_up = 0
-
+        self.lefthand = False
+        self.righthand = False
+        
     def draw(self):
         # this resets the 3D velocity tuple
-        self.velocity = (0,0,0)
+        self.velocity = (0,self.velocity_up,0)
         # this looks for any key that has been pressed that is used for 2D movement and adds its tuple to the velocity to get the sum of the velocities
         for key in self.pressed_keys:
                 self.velocity = tuple(map(add,self.velocity,self.keys[key]))
@@ -310,11 +315,41 @@ class Player(Being):
             if self.framepos == 9*self.width:
                 self.framepos = 0
                 self.frameposjump = 0
+                #self.lefthand_framepos = 0
+                #self.righthand_framepos = 0
             else:
                 self.framepos = self.framepos+self.width
                 self.frameposjump = self.frameposjump+self.width
+                #self.lefthand_framepos = self.lefthand_framepos+self.width
+                #self.righthand_framepos = self.righthand_framepos+self.width
         else:
             pass
+        # if not jumping, reset the frame for jumping
+        if self.jumping == False:
+            self.frameposjump = 0
+
+        # same as above but for left hand, and stops looping when self.lefthand is no longer true and the left hand animation has ended
+        if self.time_anim_temp > self.time_anim:    
+                if self.lefthand_framepos == 9*self.width:
+                    self.lefthand_framepos = 0
+                elif self.lefthand == False and self.lefthand_framepos != 0:
+                    self.lefthand_framepos = self.lefthand_framepos+self.width
+                elif self.lefthand == True:
+                    self.lefthand_framepos = self.lefthand_framepos+self.width
+                else:
+                    pass
+
+        # same as above but for right hand, and stops looping when self.tighthand is no longer true and the right hand animation has ended
+        if self.time_anim_temp > self.time_anim:    
+                if self.righthand_framepos == 9*self.width:
+                    self.righthand_framepos = 0
+                elif self.righthand == False and self.righthand_framepos != 0:
+                    self.righthand_framepos = self.righthand_framepos+self.width
+                elif self.righthand == True:
+                    self.righthand_framepos = self.righthand_framepos+self.width
+                else:
+                    pass
+        
         # dictionary to know which velocity tuple corresponds to which vertical position on the sprite sheet that will be used for the character's sprite <- if you do not understand this it's ok
         self.character_sprites = {
             (-1,0,1): 0,
@@ -327,20 +362,32 @@ class Player(Being):
             (1,0,0): 7,
             (0,0,0): 8
             }
+
+        # dictionary to know which hand/equipment combination corresponds to which vertical position on the sprite sheet that will be used for the charater's sprite <- if you do not understand this it's ok
+        self.hand_equipment  = [(mouse, equipment) for mouse in self.mouse for equipment in self.equipment]
+        self.hand_equipment.reverse()
+        self.hand_equipment_sprites = {self.hand_equipment[i]: i for i in range(len(self.hand_equipment))}
+        """print self.hand_equipment_sprites""" #debug
+        
         # sets the character's sprite to the default non-moving player sprite if velocity is 0
         if self.velocity == (0,0,0):
             screen.blit(self.player_image, pos_to_2d(self.position), (0,self.height*self.character_sprites[self.velocity],self.width,self.height) )
-        # if it is not, sets the character's sprite to the corresponding animation sprite
+        # sets the character's sprite to the jumping player sprite if vertical velocity is not 0
+        elif self.velocity[1] != 0:
+             screen.blit(self.player_image, pos_to_2d(self.position), (self.frameposjump,self.height*9,self.width,self.height) )
+        # otherwise sets the characer's sprite to the moving player sprite in the appropriate direction
         else:
             screen.blit(self.player_image, pos_to_2d(self.position), (self.framepos,self.height*self.character_sprites[self.velocity],self.width,self.height) )
-
-        # if jumping, sets the character's sprite to the corresponding jumping animation sprite
-        if self.jumping == False:
-            self.frameposjump = 0
+        # loads the equipment type for both hands
+        self.equipment_held[0] = ('LEFT', self.mouse['LEFT'])
+        self.equipment_held[1] = ('RIGHT', self.mouse['RIGHT'])
+        # sets the hand sprite for the left hand
+        print self.hand_equipment_sprites[self.equipment_held[0]], self.hand_equipment_sprites[self.equipment_held[1]]
+        screen.blit(self.hand_image, pos_to_2d(self.position), (self.lefthand_framepos,self.height*self.hand_equipment_sprites[self.equipment_held[0]],self.width,self.height))
+        # sets the hand sprite for the right hand
+        screen.blit(self.hand_image, pos_to_2d(self.position), (self.righthand_framepos,self.height*self.hand_equipment_sprites[self.equipment_held[1]],self.width,self.height))
+      
         # copies the temporary value to the actual value for animation purposes, so they are equal again for the time specified in MS_PER_FRAME and the frames don't change
-        elif self.jumping == True:
-            screen.blit(self.player_image, pos_to_2d(self.position), (self.frameposjump,self.height*9,self.width,self.height) )
-
         self.time_anim = self.time_anim_temp
 
 
@@ -364,6 +411,7 @@ class Player(Being):
             elif self.mouse_list[i] == False:
                 if self.mouse_list_dict[i] in self.pressed_mouse:
                     self.pressed_mouse.remove(self.mouse_list_dict[i])
+        """print self.pressed_mouse""" #debug
         if event.type == KEYDOWN:
             if event.key in self.keys:
                 self.pressed_keys.append(event.key)
@@ -376,7 +424,7 @@ class Player(Being):
         self.draw()
 
 
-        # Handle keys
+        # Handle keys and mouse
         for key in self.pressed_keys:
             if key == K_SPACE:
                 if not self.jumping:
@@ -386,17 +434,28 @@ class Player(Being):
                 self.position = tuple(map(add, self.position, self.keys[key]))
             except Exception:
                 pass
-
+        if 'LEFT' in self.pressed_mouse:
+            self.lefthand = True
+        elif 'LEFT' not in self.pressed_mouse:
+            self.lefthand = False
+        if 'RIGHT' in self.pressed_mouse:
+            self.righthand = True
+        elif 'Right' not in self.pressed_mouse:
+            self.righthand = False
+        
+        # Handle jumping in a better way than previously
         if self.jumping:
-            z = self.velocity_up*1 + 1.0/2*(-6.8)*((1/FRAMES_PER_SECOND)**2)
-            self.velocity_up = self.velocity_up -6.8*1/FRAMES_PER_SECOND
+            z = self.velocity_up*1 + 1.0/2*(-9.8)*((1/FRAMES_PER_SECOND)**2)  
+            self.velocity_up = self.velocity_up -9.8*1/FRAMES_PER_SECOND
             self.position = tuple(map(add, self.position, (0,z,0)))
-        if JUMP_SPEED + self.velocity_up <= 0.0 and self.velocity_up < 0:
+        if self.position[1] <= 0:
+        #if JUMP_SPEED + self.velocity_up <= 0.0 and self.velocity_up < 0:
             # Here we assume that the only possible height at which the player
             # can be is 0. Later on, I think we might have some platforms, so we
             # will need to work out other abstractions
             self.jumping = False
             self.velocity_up = 0
+            self.position = (self.position[0],0,self.position[2])
 
 # this is the star class for various stars that generate shadows
 class Star(Being):
@@ -546,10 +605,10 @@ class Enemy(Being):
         self.velocity_random_assignment = {
         0: (-1,0,1),
         1: (1,0,1),
-        2: (-1,0,-1),
-        3: (1,0,-1),
+        2: (0,0,0),
+        3: (0,0,0),
         4: (0,0,1),
-        5: (0,0,-1),
+        5: (0,0,0),
         6: (-1,0,0),
         7: (1,0,0),
         8: (0,0,0)
