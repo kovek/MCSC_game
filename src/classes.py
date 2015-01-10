@@ -265,9 +265,15 @@ def pos_to_2d(position):
 class Player(Being):
     """ """
 
+    # self; width is the player's width, height is the player's height, scaled_size stores the player's size after scaling, time_anim and time_anim_temp are variables for creating the animation
+    # all the framepos are for positioning the area for the cropping, position and velocity are self-explanatory, velocity_up is used for jumping, equipment is a list of all the equipment types available to the player
+    # equipment_held is a list used to store tuples describing what hand holds what equipment type for cropping purposes, pressed_keys is for keys that are currently pressed, keys are the keys currently accepted for controlling player and their effect on position
+    # pressed_mouse is for mouse buttons that are currently pressed, mouse is the buttons currently accepted for controlling the player and the weapon type each hand holds, player_image_temp and hand_image_temp are the spritesheets
+    # jumping/lefthand/righthand are bools determining whether player is jumping/using left hand/using right hand
     def __init__(self,width,height):
         self.width = width
         self.height = height
+        self.scaled_size = [self.width,self.height]
         self.time_anim = 0
         self.time_anim_temp = 0
         self.framepos = 0
@@ -292,19 +298,26 @@ class Player(Being):
             'LEFT': self.equipment[1],
             'RIGHT': self.equipment[1]
         }
-        self.player_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'player_anim.png'))
-        self.hand_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'hands_anim.png'))
+        self.player_image_temp = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'player_anim.png'))
+        self.hand_image_temp = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'hands_anim.png'))
         self.jumping = False
         self.lefthand = False
         self.righthand = False
-        
-    def draw(self):
+
+    # this function will be used later to change the equipment of the player, for now it is just copy pasta
+    def change_equipment(self):
+        self.mouse['LEFT'] = self.equipment[1]
+        self.mouse['RIGHT'] = self.equipment[1]
+
+    # this crops the spritesheet using subsurfaces to get the correct sprite for a given action    
+    def crop(self):
         # this resets the 3D velocity tuple
         self.velocity = (0,self.velocity_up,0)
         # this looks for any key that has been pressed that is used for 2D movement and adds its tuple to the velocity to get the sum of the velocities
         for key in self.pressed_keys:
                 self.velocity = tuple(map(add,self.velocity,self.keys[key]))
 
+        ### THIS NEEDS TO BE REMOVED OF PLAYER AT ONCE
         edges = [list(pos_to_2d( (-250,0,-250) )), list(pos_to_2d( (250,0,-250) )), list(pos_to_2d( (250,0,250) )), list(pos_to_2d( (-250,0,250) )) ]
         pygame.draw.polygon(screen, (0,0,255), edges )
 
@@ -315,15 +328,12 @@ class Player(Being):
             if self.framepos == 9*self.width:
                 self.framepos = 0
                 self.frameposjump = 0
-                #self.lefthand_framepos = 0
-                #self.righthand_framepos = 0
             else:
                 self.framepos = self.framepos+self.width
                 self.frameposjump = self.frameposjump+self.width
-                #self.lefthand_framepos = self.lefthand_framepos+self.width
-                #self.righthand_framepos = self.righthand_framepos+self.width
         else:
             pass
+        
         # if not jumping, reset the frame for jumping
         if self.jumping == False:
             self.frameposjump = 0
@@ -371,36 +381,61 @@ class Player(Being):
         
         # sets the character's sprite to the default non-moving player sprite if velocity is 0
         if self.velocity == (0,0,0):
-            screen.blit(self.player_image, pos_to_2d(self.position), (0,self.height*self.character_sprites[self.velocity],self.width,self.height) )
+            self.player_image = self.player_image_temp.subsurface( (0,self.height*self.character_sprites[self.velocity],self.width,self.height) )
         # sets the character's sprite to the jumping player sprite if vertical velocity is not 0
         elif self.velocity[1] != 0:
-             screen.blit(self.player_image, pos_to_2d(self.position), (self.frameposjump,self.height*9,self.width,self.height) )
+             self.player_image = self.player_image_temp.subsurface( (self.frameposjump,self.height*9,self.width,self.height) )
         # otherwise sets the characer's sprite to the moving player sprite in the appropriate direction
         else:
-            screen.blit(self.player_image, pos_to_2d(self.position), (self.framepos,self.height*self.character_sprites[self.velocity],self.width,self.height) )
+            self.player_image = self.player_image_temp.subsurface( (self.framepos,self.height*self.character_sprites[self.velocity],self.width,self.height) )
         # loads the equipment type for both hands
         self.equipment_held[0] = ('LEFT', self.mouse['LEFT'])
         self.equipment_held[1] = ('RIGHT', self.mouse['RIGHT'])
+        """print self.hand_equipment_sprites[self.equipment_held[0]], self.hand_equipment_sprites[self.equipment_held[1]]""" #debug
         # sets the hand sprite for the left hand
-        print self.hand_equipment_sprites[self.equipment_held[0]], self.hand_equipment_sprites[self.equipment_held[1]]
-        screen.blit(self.hand_image, pos_to_2d(self.position), (self.lefthand_framepos,self.height*self.hand_equipment_sprites[self.equipment_held[0]],self.width,self.height))
+        self.hand_image_left = self.hand_image_temp.subsurface( (self.lefthand_framepos,self.height*self.hand_equipment_sprites[self.equipment_held[0]],self.width,self.height) )
         # sets the hand sprite for the right hand
-        screen.blit(self.hand_image, pos_to_2d(self.position), (self.righthand_framepos,self.height*self.hand_equipment_sprites[self.equipment_held[1]],self.width,self.height))
+        self.hand_image_right = self.hand_image_temp.subsurface( (self.righthand_framepos,self.height*self.hand_equipment_sprites[self.equipment_held[1]],self.width,self.height) )
       
         # copies the temporary value to the actual value for animation purposes, so they are equal again for the time specified in MS_PER_FRAME and the frames don't change
         self.time_anim = self.time_anim_temp
 
+    # this scales the player based on his position on the z-axis
+    def scale(self):
+        # scaling done by taking the difference between pos_to_2d of the position and pos_to_2d of the position+the player's dimensions, yielding a scale factor
+        self.position_i = self.position
+        self.position_f = tuple(map(add, self.position, (self.width, self.height, 0)))
+        self.position_i_2d = list(pos_to_2d(self.position_i))
+        self.position_f_2d = list(pos_to_2d(self.position_f))
+        self.scale_factor = float(self.position_f_2d[0]-self.position_i_2d[0])/float(self.width)
+        self.scaled_size = [int(self.scale_factor*self.width),int(self.scale_factor*self.height)]
+        self.scaled_size_float = [float(self.scale_factor*self.width),float(self.scale_factor*self.height)]
 
+        # now resizing sprites for player, left hand and right hand
+        self.player_image = pygame.transform.scale(self.player_image, (int(self.scaled_size_float[0]),int(self.scaled_size_float[1])))
+        self.hand_image_left = pygame.transform.scale(self.hand_image_left, (int(self.scaled_size_float[0]),int(self.scaled_size_float[1])))
+        self.hand_image_right = pygame.transform.scale(self.hand_image_right, (int(self.scaled_size_float[0]),int(self.scaled_size_float[1])))
+
+    # moving the player
     def move(self):
-            self.position = tuple(map(add, self.position, self.velocity)) # Add movement to position
+            self.position = tuple(map(add, self.position, self.velocity)) # add movement to position
 
+    # draws the player, left hand and right hand      
+    def draw(self):
+        screen.blit(self.player_image, pos_to_2d(self.position))
+        screen.blit(self.hand_image_left, pos_to_2d(self.position))
+        screen.blit(self.hand_image_right, pos_to_2d(self.position))
+
+    # some stuff to determine which keys and mouse buttons are pressed
     def key_event(self, event):
+        # mouse.get_pressed returns buttons currently pressed in terms of numbers, that are converted to more practical strings via a dict
         self.mouse_list = list(pygame.mouse.get_pressed())
         self.mouse_list_dict = {
             0: 'LEFT',
             1: 'MIDDLE',
             2: 'RIGHT'
         }
+        # addition and removal of mouse buttons as they are pressed and released, this also avoids duplicates
         for i in range(len(self.mouse_list)):
             if self.mouse_list[i] == True:
                 if self.mouse_list_dict[i] in self.pressed_mouse:
@@ -412,6 +447,7 @@ class Player(Being):
                 if self.mouse_list_dict[i] in self.pressed_mouse:
                     self.pressed_mouse.remove(self.mouse_list_dict[i])
         """print self.pressed_mouse""" #debug
+        # much simpler for keyboard keys, checks if they should be added or removed, ezpz
         if event.type == KEYDOWN:
             if event.key in self.keys:
                 self.pressed_keys.append(event.key)
@@ -421,19 +457,23 @@ class Player(Being):
 
     def tick(self):
         super(self.__class__, self).tick()
+        self.crop()
+        self.scale()
+        self.move()
         self.draw()
 
-
-        # Handle keys and mouse
+        # handle keys and mouse
         for key in self.pressed_keys:
             if key == K_SPACE:
                 if not self.jumping:
                     self.jumping = True
                     self.velocity_up = JUMP_SPEED
-            try:
+            # maybe remove comment block
+            """try:
                 self.position = tuple(map(add, self.position, self.keys[key]))
             except Exception:
-                pass
+                pass"""
+        # changing the bools corresponding to left hand/right hand use if the corresponding mouse buttons are pressed
         if 'LEFT' in self.pressed_mouse:
             self.lefthand = True
         elif 'LEFT' not in self.pressed_mouse:
@@ -443,16 +483,17 @@ class Player(Being):
         elif 'Right' not in self.pressed_mouse:
             self.righthand = False
         
-        # Handle jumping in a better way than previously
+        # handle jumping in a better way than previously
         if self.jumping:
             z = self.velocity_up*1 + 1.0/2*(-9.8)*((1/FRAMES_PER_SECOND)**2)  
             self.velocity_up = self.velocity_up -9.8*1/FRAMES_PER_SECOND
             self.position = tuple(map(add, self.position, (0,z,0)))
         if self.position[1] <= 0:
-        #if JUMP_SPEED + self.velocity_up <= 0.0 and self.velocity_up < 0:
-            # Here we assume that the only possible height at which the player
-            # can be is 0. Later on, I think we might have some platforms, so we
-            # will need to work out other abstractions
+        # maybe remove comment block
+            """if JUMP_SPEED + self.velocity_up <= 0.0 and self.velocity_up < 0:
+             Here we assume that the only possible height at which the player
+             can be is 0. Later on, I think we might have some platforms, so we
+             will need to work out other abstractions"""
             self.jumping = False
             self.velocity_up = 0
             self.position = (self.position[0],0,self.position[2])
@@ -485,7 +526,7 @@ class Shadow(Being):
         self.shadow_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'shadows', owner_string+'_shadow.png'))
         self.owner = owner
         self.source = source
-        self.height = owner.width/4
+        self.height = owner.scaled_size[0]/4
     # updates the shadow's position    
     def update_pos(self,owner,source):
         # using the owner's 3d position to compute the shadow's position offset when the owner jumps
@@ -522,49 +563,51 @@ class Shadow(Being):
         if source.angle_actual >=0.0 and source.angle_actual <=90.0:
             # shadow's x-position is its own x-position - its length, which is represented by: owner's height * cot(angle)
             try:
-                self.position_list[0] = self.position_list[0]-(owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))
+                self.position_list[0] = self.position_list[0]-(owner.scaled_size[1]*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))
             # if cot(angle) = infinity, shadow's length is 10000
             except:
                  self.position_list[0] = self.position_list[0]-10000
             # if cot(angle) is such that the shadow's length exceeds 10000, it becomes 10000
             else:
-                if (owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
-                    self.position_list[0] = self.position_list[0]+(owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))-10000
+                if (owner.scaled_size[1]*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
+                    self.position_list[0] = self.position_list[0]+(owner.scaled_size[1]*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))-10000
                     """print "Corrected!""""" #debug
         # for angles between 90 and 180 degrees, the shadow's x-position does not need offset since it's to the right of the owner
         elif source.angle_actual >90.0 and source.angle_actual <=180.0:
             pass
         # moving the shadow vertically to the owner's feet
-        self.position_list[1] = self.position_list[1]+owner.height-self.height/2
+        self.position_list[1] = self.position_list[1]+owner.scaled_size[1]-self.height/2
         # converting finished position tuple into list
         self.position = tuple(self.position_list)
     
     def update_scale(self,owner,source):
+        # first of all, updating the shadow's height
+        self.height = owner.scaled_size[0]/4
         # for angles between 0 and 90 degrees, cot(angle) is positive and requires no adjustment
         if source.angle_actual >=0.0 and source.angle_actual <=90.0:
             # shadow's length is equal to owner's height * cot(angle) and increased by owner's width (to make its minimum size the owner's width)
             try:
-                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.width+owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),self.height))
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.scaled_size[0]+owner.scaled_size[1]*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),self.height))
             # if cot(angle) = infinity, shadow's length is 10000 and increased by owner's width
             except:
-                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.width+10000,self.height))
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.scaled_size[0]+10000,self.height))
             # if cot(angle) is such that the shadow's length exceeds 10000, it becomes 10000 and increased by owner's width
             else:
-                if (owner.width+owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
-                    self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.width+10000,self.height))
+                if (owner.scaled_size[0]+owner.scaled_size[1]*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
+                    self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.scaled_size[0]+10000,self.height))
                     """print "Corrected!""""" #debug
         # for angles between 90 and 180 degrees, cot(angle) is negative and thus abs(cot(angle)) must be used
         elif source.angle_actual >90.0 and source.angle_actual <=180.0:
             # shadow's length is equal to owner's height * abs(cot(angle)) and increased by owner's width (to make its minimum size the owner's width)
             try:
-                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.width+owner.height*abs(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),self.height))
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.scaled_size[0]+owner.scaled_size[1]*abs(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),self.height))
             # if abs(cot(angle)) = infinity, shadow's length is 10000 and increased by owner's width
             except:
-                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.width+10000,self.height))
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.scaled_size[0]+10000,self.height))
             # if cot(angle) is such that the shadow's length exceeds 10000, it becomes 10000 and increased by owner's width
             else:
-                if (owner.width+owner.height*abs(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
-                    self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.width+10000,self.height))
+                if (owner.scaled_size[0]+owner.scaled_size[1]*abs(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
+                    self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.scaled_size[0]+10000,self.height))
                     """print "Corrected!""""" #debug
         # for angles above 180 degrees, the shadow does not appear and thus its size becomes 0
         elif source.angle_actual >180.0:
@@ -581,27 +624,28 @@ class Shadow(Being):
 class Enemy(Being):
     """ A class for the enemy. Will have to have some sort of AI. """
 
+    # self; width is the enemy's width, height is the enemy's height, scaled_size stores the enemy's size after scaling, time_anim and time_anim_temp are variables for creating the animation
+    # all the framepos are for positioning the area for the cropping, position and velocity are self-explanatory (the position is random for now), velocity_randomizer is a value used to determine the velocity randomly, eventually will be removed, enemy_image_temp is a spritesheet
     def __init__(self,width,height):
         self.width = width
         self.height = height
+        self.scaled_size = [self.width,self.height]
         self.time_anim = 0
         self.time_anim_temp = 0
         self.framepos = 0
-        self.position = (0,0,0)
+        self.position = (random.randint(-100,100),0,random.randint(-500,-400))
         self.velocity = (0,0,0)
         self.velocity_randomizer = 8
-        # initializes enemy sprite from file
-        self.enemy_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'bosses', 'boss.png'))
-        # sets x and y position for enemy to random values within the window
-        self.position = (random.randint(-100,100),0,random.randint(-100,100))
-
-    # the motion is random for now
+        self.enemy_image_temp = pygame.image.load(os.path.join('..', 'data', 'sprites', 'bosses', 'boss.png'))
+        
+    # the velocity is determined in a random way for now
     def randomize_parameters(self):
         self.randomize_chance = random.randint(0,100)
         if self.randomize_chance == 0:
             self.velocity_randomizer = random.randint(0,8)
-            
-    def draw(self):
+
+    # this crops the spritesheet using subsurfaces to get the correct sprite for a given action            
+    def crop(self):
         self.velocity_random_assignment = {
         0: (-1,0,1),
         1: (1,0,1),
@@ -639,23 +683,47 @@ class Enemy(Being):
             }
         # sets the character's sprite to the default non-moving player sprite if velocity is 0
         if self.velocity == (0,0,0):
-                screen.blit(self.enemy_image, pos_to_2d(self.position), (0,self.height*self.character_sprites[self.velocity],self.width,self.height) )
-        # if it is not, sets the character's sprite to the corresponding animation sprite
+                self.enemy_image = self.enemy_image_temp.subsurface( (0,self.height*self.character_sprites[self.velocity],self.width,self.height) )
+        # otherwise sets the characer's sprite to the moving player sprite in the appropriate direction
         else:
-                screen.blit(self.enemy_image, pos_to_2d(self.position), (self.framepos,self.height*self.character_sprites[self.velocity],self.width,self.height) )
+                self.enemy_image = self.enemy_image_temp.subsurface( (self.framepos,self.height*self.character_sprites[self.velocity],self.width,self.height) )
 
+        # copies the temporary value to the actual value for animation purposes, so they are equal again for the time specified in MS_PER_FRAME and the frames don't change
         self.time_anim = self.time_anim_temp
-        self.move()
 
+    # this scales the enemy based on his position on the z-axis
+    def scale(self):
+        # scaling done by taking the difference between pos_to_2d of the position and pos_to_2d of the position+the player's dimensions, yielding a scale factor
+        self.position_i = self.position
+        self.position_f = tuple(map(add, self.position, (self.width, self.height, 0)))
+        self.position_i_2d = list(pos_to_2d(self.position_i))
+        self.position_f_2d = list(pos_to_2d(self.position_f))
+        self.scale_factor = float(self.position_f_2d[0]-self.position_i_2d[0])/float(self.width)
+        self.scaled_size = [int(self.scale_factor*self.width),int(self.scale_factor*self.height)]
+        self.scaled_size_float = [float(self.scale_factor*self.width),float(self.scale_factor*self.height)]
+        print self.scaled_size_float
+
+        # now resizing sprites for enemy
+        self.enemy_image = pygame.transform.scale(self.enemy_image, (int(self.scaled_size_float[0]),int(self.scaled_size_float[1])))
+        
+    #moving the enemy
     def move(self):
+            self.velocity_list = list(self.velocity)
+            self.velocity_list = [self.velocity_list[i]/5.0 for i in range(3)]
+            self.velocity = tuple(self.velocity_list)
             self.position = tuple(map(add, self.position, self.velocity)) # Add movement to position
+
+    # draws the enemy
+    def draw(self):
+        screen.blit(self.enemy_image, pos_to_2d(self.position))
 
     def tick(self):
         super(self.__class__, self).tick()
         self.randomize_parameters()
+        self.crop()
+        self.scale()
+        self.move()
         self.draw()
-
-
 
 class GuiStatic(GuiItem):
     # self; image is the supplied image file, posx and posy are the supplied (x,y) coordinates
