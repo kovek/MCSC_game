@@ -78,12 +78,20 @@ screen.fill(BLACK)
 
 # draw the window onto the screen
 pygame.display.update()
-pygame.display.toggle_fullscreen()
+#pygame.display.toggle_fullscreen()
 
 # initialization of every element of the game (player, enemies, gui items)
 ###this should be moved to some other class eventually
-player = classes.Warrior(pygame)
+player = classes.Warrior()
 player.components['controls'].pygame = pygame
+"""
+walls = [
+	classes.Wall([250,0,0], [-1,0,0]),
+	classes.Wall([-250,0,0], [1,0,0]),
+	classes.Wall([0,0,250], [0,0-1]),
+	classes.Wall([0,0,-250], [0,0,1]),
+	classes.Wall([0,0,0], [0,1,0]) ]
+	"""
 
 square_position_x = [510+offset_h,580+offset_h,670+offset_h,740+offset_h,810+offset_h,880+offset_h]
 hp_container = classes.GuiStatic('bar_container.png',20+offset_h,830+offset_v)
@@ -119,7 +127,8 @@ State = Enum('State', 'playing menu paused')
 state = State.playing
 
 # things_on_screen contains everything that must be drawn by pygame.
-things_on_screen = [player, hp_container, mana_container, enemy_bar_container,square0,square1,square2,square3,square4,square5,hp_bar,mana_bar,enemy_bar,hp_text,mana_text,lh_text,rh_text,s1_text,s2_text,s3_text,s4_text,boss,sun]
+things_on_screen = [classes.Battlefield(), classes.RagdollBoss(), player, hp_container, mana_container, enemy_bar_container,square0,square1,square2,square3,square4,square5,hp_bar,mana_bar,enemy_bar,hp_text,mana_text,lh_text,rh_text,s1_text,s2_text,s3_text,s4_text,boss,sun]
+classes.PhysicsEngine.things_on_field = things_on_screen
 
 # run the game loop
 while True:

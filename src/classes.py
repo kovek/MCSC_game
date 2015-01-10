@@ -26,24 +26,44 @@ MS_PER_FRAME = 200
 JUMP_SPEED = 1.5
 DAY_TIME = 360000
 
+class Entity(object):
+	def __getattribute__(self, name):
+		try:
+			return super(Entity, self).__getattribute__(name)
+		except AttributeError:
+			try:
+				return Resources[super(Entity, self).__getattribute__("__class__").__name__].__getitem__(name)
+			except KeyError:
+				return Resources[super(Entity, self).__getattribute__("name")].__getitem__(name)
+		except Exception as e:
+			print "Exception: ", e
+
+	def tick(self):
+		for name, component in self.components.iteritems():
+				component.tick()
+
+
 class Render(object):
 	def __init__(self, parent, source):
 		self.parent = parent
 		self.source = source
-        #self.player_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'player_anim.png'))
-		self.pygame = self.parent.pygame
-		self.player_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'player_anim.png'))
-		self.image = pygame.image.load(Resources[self.source]['spritesheet_file'])
+		self.image = pygame.image.load(self.parent.spritesheet_file)
+		self.which_frame = 0
+		self.which_animation = 0
 	
 	def tick(self):
 		position = self.parent.components['physics'].position
-		offset = Resources[self.source]['offset']
+		offset = self.parent.offset
+		num_of_frames = self.parent.num_of_frames
+		num_of_animations = self.parent.num_of_animations
+		dimensions = (self.image.get_width()/num_of_frames, self.image.get_height()/num_of_animations)
 		
+		point_on_screen = pos_to_2d(self.parent.components['physics'].position)
 		screen.blit(self.image,
-			pos_to_2d(self.parent.components['physics'].position),
-
-
+			(point_on_screen[0]-dimensions[0]*offset[0], point_on_screen[1]-dimensions[1]*offset[1]),
+			(0*dimensions[0], 8*dimensions[1], dimensions[0], dimensions[1])
 		)
+		pygame.draw.line(screen, (0,0,255), pos_to_2d([0,0,0]), pos_to_2d([0,0,0]))
 
 class Physics(object):
 	def __init__(self, parent, position, velocity=[0,0,0] ):
@@ -56,9 +76,17 @@ class Physics(object):
 			self.position[i] += self.velocity[i]
 
 		# Acceleration of gravity
-		self.velocity[2] = self.velocity[2]*1 + 1.0/2*(-6.8)*((1/FRAMES_PER_SECOND)**2)
-		self.velocity[2] = self.velocity[2] -6.8*1/FRAMES_PER_SECOND
-		print self.position
+		self.velocity[1] = self.velocity[1]*1 + 1.0/2*(-6.8)*((1/FRAMES_PER_SECOND)**2)
+		self.velocity[1] = self.velocity[1] -6.8*1/FRAMES_PER_SECOND
+
+		# Bounds of battlefield
+		if self.position[0] < -250: self.position[0] = -250
+		if self.position[0] > 250: self.position[0] = 250
+		if self.position[1] < 0:
+			self.position[1] = 0
+			self.velocity[1] = 0
+		if self.position[2] > 250: self.position[2] = 250
+		if self.position[2] < -250: self.position[2] = -250
 
 class PhysicsEngine(object):
 	things_on_field = []
@@ -69,42 +97,59 @@ class Collision(object):
 		self.parent = parent
 		self.source = source
 
-
-		# needed to find all 8 corners of a box around a point
-		self.permutations = []
-		for subset in itertools.combinations_with_replacement([-1,1], 3):
-			self.permutations.append(subset)
-		for subset in itertools.combinations_with_replacement([1,-1], 3):
-			self.permutations.append(subset)
+		# Needed to find all 8 corners of a box around a point
+		self.permutations = [
+			[1,1,1],
+			[-1,-1,-1],
+			[-1,1,1],
+			[-1,-1,1],
+			[1,-1,-1],
+			[1,1,-1],
+			[1,-1,1],
+			[-1,1,-1]
+		]
 
 	def tick(self):
-		bounds = Resources[self.source]['box_size']
+		bounds = self.parent.box_size
 		position = self.parent.components['physics'].position
 		x_bounds = (position[0]-bounds[0]/2.0, position[0]+bounds[0]/2.0)
 		y_bounds = (position[1]-bounds[1]/2.0, position[1]+bounds[1]/2.0)
 		z_bounds = (position[2]-bounds[2]/2.0, position[2]+bounds[2]/2.0)
+
 		list_of_colliding_with_self = []
 		for item in PhysicsEngine.things_on_field:
+			if item is self.parent:
+				continue
+
+			try:
+				physics_component = item.components['physics']
+			except Exception:
+				continue
+
+			if type(item) == RagdollBoss and type(self.parent) == Warrior:
+				pass
+
 			item_position = item.components['physics'].position	
-			box_size = Resources[item.name].box_size
+			box_size = item.box_size
 			points = []
 			
 			for corner in self.permutations:
 				points.append( [
-					position[0] + 1/2.0 * corner[0] * box_size[0],
-					position[1] + 1/2.0 * corner[1] * box_size[1],
-					position[2] + 1/2.0 * corner[2] * box_size[2],
+					item_position[0] + 1/2.0 * corner[0] * box_size[0],
+					item_position[1] + 1/2.0 * corner[1] * box_size[1],
+					item_position[2] + 1/2.0 * corner[2] * box_size[2],
 				] )
 
 			for point in points:
-				if x_bounds[0] < point[0] < x_bounds[0]:
-					if y_bounds[0] < point[1] < y_bounds[0]:
-						if x_bounds[2] < point[2] < _bounds[2]:
+				if x_bounds[0] < point[0] < x_bounds[1]:
+					if y_bounds[0] < point[1] < y_bounds[1]:
+						if z_bounds[0] < point[2] < z_bounds[1]:
 							list_of_colliding_with_self.append(item)
+
 		for item in list_of_colliding_with_self:
 			CollisionsPossible.collision(self.parent.name, item.name)(self.parent, item)
 
-class CollisionsPossible(object):
+class CollisionsPossibleClass(object):
 	def __init__(self):
 		pass
 
@@ -118,6 +163,7 @@ class CollisionsPossible(object):
 		print 'tree gives shadow to player'
 
 	def Wall_with_Player(self, wall, player):
+		return
 		# Push the character off
 
 		# k is the distance we have to push the player off
@@ -127,24 +173,22 @@ class CollisionsPossible(object):
 			player.components['physics'].position,
 			[x* (k) for x in wall.direction] )
 
+	def RagdollBoss_with_Warrior(self, boss, player):
+		print "Player looks at Ragdoll awkwardly"
+CollisionsPossible = CollisionsPossibleClass()
+
 class Battlefield(object):
 	def __init__(self):
-		self.components = {
-				"render": Render("Battlefield"),
-				"physics": {position: (0,0,0)}
-			}
-
-
 		pass
 
 	def tick(self):
-		pass
+		edges = [list(pos_to_2d( [-250,0,-250] )), list(pos_to_2d( [250,0,-250] )), list(pos_to_2d( [250,0,250] )), list(pos_to_2d( [-250,0,250] )) ]
+		pygame.draw.polygon(screen, (0,0,255), edges )
 
 
 class Controls(object):
 	def __init__(self, parent):
 		self.parent = parent
-		self.pygame = None
 		self.pressed_keys = []
 
 		self.keys = {
@@ -183,10 +227,10 @@ class Controls(object):
 
 		for key in self.pressed_keys:
 			if key in [K_w, K_a, K_s, K_d]:
-				self.parent.components['physics'].velocity = self.keys[key]
+				self.parent.components['physics'].position = map(add, self.parent.components['physics'].position, self.keys[key])
 			elif key is K_SPACE:
 				if self.parent.components['physics'].velocity[1] is 0:
-					self.parent.components['physics'].velocity[1] = 2
+					self.parent.components['physics'].velocity[1] = 1
 			else:
 				pass
 
@@ -198,34 +242,19 @@ class Controls(object):
 			if event.key in self.pressed_keys:
 				self.pressed_keys.remove(event.key)
 
-class Wall(object):
-	def __init__(self, position, direction):
-		self.physics = {'position': position}
-		self.direction = direction
-		self.components = {
-			"collision": Collision(self),
-		}
-
-	def tick(self):
-		pass
-	
-
-class Warrior(object):
-	def __init__(self, pygame):
+class Warrior(Entity):
+	def __init__(self):
 		position = [0,0,0]
-		self.pygame = pygame
+		self.name = "Warrior"
 		self.components = {
 			'physics': Physics(self, position),
 			'collision': Collision(self, "Warrior"),
 			'controls': Controls(self),
 			'render': Render(self, "Warrior")
 		}
-	
-	def tick(self):
-		for name, component in self.components.iteritems():
-				component.tick()
 
-class Assassin(object):
+	
+class Assassin(Entity):
 	def __init__(self, parent):
 		position = (0,0,0)
 		box = (2,2,2)
@@ -234,9 +263,16 @@ class Assassin(object):
 			'collision': Collision(box),
 			'render': Render("Assassin")
 		}
-	
-	def tick(self):
-		pass		
+
+class RagdollBoss(Entity):
+	def __init__(self):
+		self.name = "RagdollBoss"
+		position = [50,0,50]
+		self.components = {
+			'physics': Physics(self, position),
+			'collision': Collision(self, "RagdollBoss"),
+			'render': Render(self, "RagdollBoss")
+		}
 
 import yaml
 class ResourcesClass(object):
