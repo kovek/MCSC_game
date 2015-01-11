@@ -1,6 +1,6 @@
 options:
   brightness: 99.5
-  resolution: [640, 480]
+  resolution: [1920, 1080]
   volume: 92
   speed: 1.1
   show_gui: True

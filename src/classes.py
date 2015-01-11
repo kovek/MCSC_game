@@ -2,6 +2,7 @@
 import pygame, sys, os
 from pygame.locals import *
 from operator import add
+from math_functions import pos_to_2d, translate, scale, rotate
 import numpy
 import math
 import random
@@ -25,6 +26,19 @@ FRAMES_PER_SECOND = 500
 MS_PER_FRAME = 200
 JUMP_SPEED = 1.5
 DAY_TIME = 360000
+
+character_sprites = {
+	(-1,0,1):	8,
+	(1,0,1):	1,
+	(-1,0,-1):	2,
+	(1,0,-1):	3,
+	(0,0,1):	4,
+	(0,0,-1):	5,
+	(-1,0,0):	6,
+	(1,0,0):	7,
+	(0,0,0):	0,
+	(0,1,0):	9,
+}
 
 class Entity(object):
 	def __getattribute__(self, name):
@@ -52,6 +66,15 @@ class Render(object):
 		self.which_animation = 0
 	
 	def tick(self):
+		self.which_frame = (pygame.time.get_ticks()//MS_PER_FRAME)%self.parent.num_of_frames
+
+		velocity = self.parent.components['physics'].velocity
+		if velocity[1] != 0:
+			self.which_animation = character_sprites[ tuple( (0,1,0) ) ]
+		else:
+			self.which_animation = character_sprites[ tuple(velocity) ]
+		
+
 		position = self.parent.components['physics'].position
 		offset = self.parent.offset
 		num_of_frames = self.parent.num_of_frames
@@ -61,23 +84,22 @@ class Render(object):
 		point_on_screen = pos_to_2d(self.parent.components['physics'].position)
 		screen.blit(self.image,
 			(point_on_screen[0]-dimensions[0]*offset[0], point_on_screen[1]-dimensions[1]*offset[1]),
-			(0*dimensions[0], 8*dimensions[1], dimensions[0], dimensions[1])
+			(self.which_frame*dimensions[0], self.which_animation*dimensions[1], dimensions[0], dimensions[1])
 		)
 		pygame.draw.line(screen, (0,0,255), pos_to_2d([0,0,0]), pos_to_2d([0,0,0]))
 
+import copy
 class Physics(object):
 	def __init__(self, parent, position, velocity=[0,0,0] ):
 		self.parent = parent
 		self.position = position
-		self.velocity = velocity
+		self.velocity = copy.copy(velocity) # If we do not use this, self.velocity will always
+											# refer to the same list in memory, no matter from
+											# which object it is referred.
 
 	def tick(self):
 		for i in xrange(3):
 			self.position[i] += self.velocity[i]
-
-		# Acceleration of gravity
-		self.velocity[1] = self.velocity[1]*1 + 1.0/2*(-6.8)*((1/FRAMES_PER_SECOND)**2)
-		self.velocity[1] = self.velocity[1] -6.8*1/FRAMES_PER_SECOND
 
 		# Bounds of battlefield
 		if self.position[0] < -250: self.position[0] = -250
@@ -87,6 +109,11 @@ class Physics(object):
 			self.velocity[1] = 0
 		if self.position[2] > 250: self.position[2] = 250
 		if self.position[2] < -250: self.position[2] = -250
+
+		# Acceleration of gravity
+		if self.position[1] != 0:
+			self.velocity[1] = self.velocity[1] -6.8*1/FRAMES_PER_SECOND
+
 
 class PhysicsEngine(object):
 	things_on_field = []
@@ -111,10 +138,17 @@ class Collision(object):
 
 	def tick(self):
 		bounds = self.parent.box_size
+		offset = self.parent.box_offset
 		position = self.parent.components['physics'].position
-		x_bounds = (position[0]-bounds[0]/2.0, position[0]+bounds[0]/2.0)
-		y_bounds = (position[1]-bounds[1]/2.0, position[1]+bounds[1]/2.0)
-		z_bounds = (position[2]-bounds[2]/2.0, position[2]+bounds[2]/2.0)
+
+		# We should not compute this for every tick. We should somehow fit that back into Resources so
+		# that it could be used later.
+		x_bounds = (position[0] - bounds[0]/2.0 + offset[0] * bounds[0],
+					position[0] + bounds[0]/2.0 + offset[0] * bounds[0])
+		y_bounds = (position[1] - bounds[1]/2.0 + offset[1] * bounds[1],
+					position[1] + bounds[1]/2.0 + offset[1] * bounds[1])
+		z_bounds = (position[2] - bounds[2]/2.0 + offset[2] * bounds[2],
+					position[2] + bounds[2]/2.0 + offset[2] * bounds[2])
 
 		list_of_colliding_with_self = []
 		for item in PhysicsEngine.things_on_field:
@@ -157,7 +191,9 @@ class CollisionsPossibleClass(object):
 		return getattr(self, name)
 
 	def collision(self, one, two):
-		return self[str(one) + '_with_' + str(two)]
+		key = str(one) + '_with_' + str(two)
+		if key in dir(self):
+			return self[key]
 
 	def Tree_with_Player(self, tree, player):
 		print 'tree gives shadow to player'
@@ -167,7 +203,10 @@ class CollisionsPossibleClass(object):
 		# Push the character off
 
 		# k is the distance we have to push the player off
-		k = numpy.dot(player.components['physics'].position, wall.direction) + numpy.dot(player.components['collision'].box_size, wall.direction)/2.0 - ( numpy.dot(wall.components['physics'].position, wall.direction) - numpy.dot(wall.components['collision'].box_size, wall.direction)/2.0 )
+		k = numpy.dot(player.components['physics'].position, wall.direction) +\
+			numpy.dot(player.components['collision'].box_size, wall.direction)/2.0 -\
+			(numpy.dot(wall.components['physics'].position, wall.direction) -\
+			numpy.dot(wall.components['collision'].box_size, wall.direction)/2.0)
 
 		player.components['physics'].position = map(add,
 			player.components['physics'].position,
@@ -225,9 +264,11 @@ class Controls(object):
 							pass
 			self.key_event(event)
 
+		self.parent.components['physics'].velocity[0] = 0
+		self.parent.components['physics'].velocity[2] = 0
 		for key in self.pressed_keys:
 			if key in [K_w, K_a, K_s, K_d]:
-				self.parent.components['physics'].position = map(add, self.parent.components['physics'].position, self.keys[key])
+				self.parent.components['physics'].velocity = map(add, self.parent.components['physics'].velocity, self.keys[key])
 			elif key is K_SPACE:
 				if self.parent.components['physics'].velocity[1] is 0:
 					self.parent.components['physics'].velocity[1] = 1
@@ -250,7 +291,8 @@ class Warrior(Entity):
 			'physics': Physics(self, position),
 			'collision': Collision(self, "Warrior"),
 			'controls': Controls(self),
-			'render': Render(self, "Warrior")
+			'render': Render(self, "Warrior"),
+			'shadow': SShadow(self)
 		}
 
 	
@@ -273,6 +315,26 @@ class RagdollBoss(Entity):
 			'collision': Collision(self, "RagdollBoss"),
 			'render': Render(self, "RagdollBoss")
 		}
+
+class SShadow(object):
+	def __init__(self, parent):
+		self.parent = parent
+
+	def tick(self):
+		pass
+
+class PlayingGUI(object):
+	def __init__(self):
+		self.components = {
+			"TopLeftGUI": 'foo',
+			"TopRightGUI": 'foo',
+			"BotRightGUI": 'foo',
+			"BotLeftGUI": 'foo',
+		}
+
+	def tick(self):
+		pass
+
 
 import yaml
 class ResourcesClass(object):
@@ -450,81 +512,6 @@ def sun_loop(sun_angle):
         sun_angle +=1
     return sun_angle
 
-def translate(x,y,z):
-    """ Return a translation matrix. """
-    return [
-        [1.0,0,0,x],
-        [0,1.0,0,y],
-        [0,0,1.0,z],
-        [0,0,0,1.0]
-    ]
-
-def rotate(x,y):
-    """ Return a rotation matrix. It rotates around the x- and y- axes. """
-    rot_x = [
-        [1.0,0,0,0],
-        [0,math.cos(x),-math.sin(x),0],
-        [0,math.sin(x),math.cos(x),0],
-        [0,0,0,1.0]
-    ]
-    rot_y = [
-        [math.cos(y),0,math.sin(y),0],
-        [0,1.0,0,0],
-        [-math.sin(y),0,math.cos(y),0],
-        [0,0,0,1.0]
-    ]
-    return numpy.dot(rot_x, rot_y)
-
-def scale(x, y, z):
-    """ Return a scaling matrix. """
-    return [
-        [x,0,0,0],
-        [0,y,0,0],
-        [0,0,z,0],
-        [0,0,0,1.0]
-    ]
-
-
-# Numbers needed for depth perception
-fzNear = 10.0
-fzFar = 510.0
-frustumScale = 0.9 # Gots to be just enough to englobe the whole field
-
-# Numbers about "camera"
-length_of_field = 500
-width_of_field = 200
-elevation_of_camera = 50
-push_back_of_camera_from_field = 10
-push_back_of_camera = length_of_field/2 + push_back_of_camera_from_field
-angle_of_camera = math.atan( float(elevation_of_camera)/float(push_back_of_camera))
-
-perspectiveMatrix = [
-    [frustumScale/(1440.0/900.0),  0,              0,                                  0],
-    [0,             -frustumScale,   0,                                  0],
-    [0,             0,              (fzFar + fzNear) / (fzNear-fzFar),  (2*fzFar * fzNear) / (fzNear - fzFar)],
-    [0,             0,              -1.0,                               0.0]
-]
-
-# Our transformations applied by doing dot products.
-translation_of_camera =  translate(0.0, -elevation_of_camera, -push_back_of_camera)
-rotation_of_camera = rotate(0, 0)
-camera_matrix = numpy.dot(rotation_of_camera, translation_of_camera)
-camera_matrix = numpy.dot(perspectiveMatrix, camera_matrix)
-
-
-def pos_to_2d(position):
-    """ Transform the current <x,y,z> point to a <x,y> point that will appear
-        on the screen. That means we apply transformations to the point. """
-		
-    out = numpy.dot(camera_matrix, position+[1] )
-    for i in range(len(out)):
-        out[i] /= out[3]
-    out[0] *= window_size_h
-    out[1] *= window_size_v
-    out[0] += window_size_h/2
-    out[1] += window_size_v/2
-    out2 = ( int(out[0]), int(out[1]) )
-    return out2
 
 
 class Player(Being):

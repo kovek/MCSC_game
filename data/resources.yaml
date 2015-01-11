@@ -1,0 +1,17 @@
+Warrior:
+    box_size: [10,10,10]
+    box_offset: [0,0.5,0]
+    offset: [0.5, 1]
+    spritesheet_file: '../data/sprites/classes/player_anim.png'
+    num_of_animations: 10
+    num_of_frames: 10
+
+RagdollBoss:
+    box_size: [20,20,20]
+    box_offset: [0,0.5,0]
+    offset: [0.5, 1]
+    spritesheet_file: '../data/sprites/classes/player_anim.png'
+    num_of_animations: 10
+    num_of_frames: 10
+    
+    
