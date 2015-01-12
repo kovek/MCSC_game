@@ -3,6 +3,12 @@ from pygame.locals import *
 from enum import Enum
 import classes
 from classes import animation_loop
+import yaml
+import gui_classes
+from gui_classes import GUIItem
+print GUIItem.__class__.__name__
+
+configs = yaml.load( file('../local/config.yaml') )
 
 # set up pygame
 pygame.init()
@@ -21,7 +27,7 @@ if bypass == 0:
         except:
             print "U 'avin a giggle m8? Gimme horizontal size as an int, at least 1440"
         else:
-            if window_size_h >= 1440:  
+            if window_size_h >= 1440:
                 break
             else:
                 print "U 'avin a giggle m80? Gimme horizontal size at least 1440"
@@ -40,8 +46,8 @@ if bypass == 0:
                 print "U 'avin a giggle m80? Gimme vertical size at least 900"
                 pass
 elif bypass == 1:
-    window_size_h = 1920
-    window_size_v = 1080
+    window_size_h = configs['options']['resolution'][0]
+    window_size_v = configs['options']['resolution'][1]
 # offsets for gui items to remain at the same relative place regardless of screen size
 offset_h = (window_size_h-1440)/2
 offset_v = (window_size_v-900)
@@ -49,6 +55,7 @@ is_online = False
 
 # set up the window
 screen = pygame.display.set_mode((window_size_h, window_size_v), 0, 32)
+pygame.display.toggle_fullscreen
 classes.screen = screen
 
 # Set up the colors
@@ -92,13 +99,15 @@ walls = [
 	classes.Wall([0,0,-250], [0,0,1]),
 	classes.Wall([0,0,0], [0,1,0]) ]
 	"""
+health_bar = gui_classes.GUIItem('health')
+mana_bar = gui_classes.GUIItem('mana')
 
 square_position_x = [510+offset_h,580+offset_h,670+offset_h,740+offset_h,810+offset_h,880+offset_h]
 hp_container = classes.GuiStatic('bar_container.png',20+offset_h,830+offset_v)
 mana_container = classes.GuiStatic('bar_container.png',970+offset_h,830+offset_v)
 enemy_bar_container = classes.GuiStatic('enemy_bar_container.png',470+offset_h,20)
 hp_bar = classes.GuiDynamic('hp_bar.png', 22+offset_h, 832+offset_v, 446, health_percentage)
-mana_bar = classes.GuiDynamic('mana_bar.png', 972+offset_h, 832+offset_v, 446, mana_percentage)
+#mana_bar = classes.GuiDynamic('mana_bar.png', 972+offset_h, 832+offset_v, 446, mana_percentage)
 enemy_bar = classes.GuiDynamic('enemy_bar.png', 472+offset_h, 22, 496, enemy_hp_percentage)
 ###IS THERE NO WAY TO DO THIS WITH A LIST? /rant
 square0 = classes.GuiStatic('square.png', square_position_x[0], 830+offset_v)
@@ -127,7 +136,7 @@ State = Enum('State', 'playing menu paused')
 state = State.playing
 
 # things_on_screen contains everything that must be drawn by pygame.
-things_on_screen = [classes.Battlefield(), classes.RagdollBoss(), player, hp_container, mana_container, enemy_bar_container,square0,square1,square2,square3,square4,square5,hp_bar,mana_bar,enemy_bar,hp_text,mana_text,lh_text,rh_text,s1_text,s2_text,s3_text,s4_text,boss,sun]
+things_on_screen = [classes.Battlefield(), classes.RagdollBoss(), player, boss, sun, mana_bar]
 classes.PhysicsEngine.things_on_field = things_on_screen
 
 # run the game loop

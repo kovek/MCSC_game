@@ -46,7 +46,7 @@ def scale(x, y, z):
 # Numbers needed for depth perception
 fzNear = 10.0
 fzFar = 510.0
-frustumScale = 0.9 # Gots to be just enough to englobe the whole field
+frustumScale = 1.9 # Gots to be just enough to englobe the whole field
 
 # Numbers about "camera"
 length_of_field = 500
@@ -58,7 +58,7 @@ angle_of_camera = math.atan( float(elevation_of_camera)/float(push_back_of_camer
 
 perspectiveMatrix = [
     [frustumScale/(1440.0/900.0),  0,              0,                                  0],
-    [0,             -frustumScale,   0,                                  0],
+    [0,             frustumScale,   0,                                  0],
     [0,             0,              (fzFar + fzNear) / (fzNear-fzFar),  (2*fzFar * fzNear) / (fzNear - fzFar)],
     [0,             0,              -1.0,                               0.0]
 ]
@@ -67,6 +67,7 @@ perspectiveMatrix = [
 translation_of_camera =  translate(0.0, -elevation_of_camera, -push_back_of_camera)
 rotation_of_camera = rotate(0, 0)
 camera_matrix = numpy.dot(rotation_of_camera, translation_of_camera)
+camera_matrix = numpy.dot(scale(1.0,-1.0,1.0), translation_of_camera)
 camera_matrix = numpy.dot(perspectiveMatrix, camera_matrix)
 
 
@@ -76,7 +77,7 @@ def distance_squared(position1, position2):
 def pos_to_2d(position):
     """ Transform the current <x,y,z> point to a <x,y> point that will appear
         on the screen. That means we apply transformations to the point. """
-		
+
     out = numpy.dot(camera_matrix, position+[1] )
     for i in range(len(out)):
         out[i] /= out[3]

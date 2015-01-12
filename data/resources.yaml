@@ -13,5 +13,44 @@ RagdollBoss:
     spritesheet_file: '../data/sprites/classes/player_anim.png'
     num_of_animations: 10
     num_of_frames: 10
-    
-    
+
+GUI:
+  boss_health:
+    point_to_img: [0.5,0]
+    point_to_screen: [0.5,0]
+  health:
+    point_to_img: [0.0,1.0]
+    point_to_screen: [0.0,1.0]
+    dimensions: [446, 46]
+    background_img: '../data/gui/health_background.png'
+    content_img: '../data/gui/hp_bar.png'
+    border_img: '../data/gui/square2.png'
+    scale_border: 1
+    border_pct: 0.1
+  mana:
+    point_to_img: [0.0,1.0]
+    point_to_screen: [0.0,1.0]
+    dimensions: [446, 46]
+    background_img: '../data/gui/health_background.png'
+    content_img: '../data/gui/mana_bar.png'
+    border_img: '../data/gui/square2.png'
+    scale_border: 1
+    border_pct: 0.1
+  LH:
+    point_to_img: [0.0,1.0]
+    point_to_screen: ["lambda d, size: d.GUI.health.width/size_of_screen",1.0]
+  RH:
+    point_to_img: [1.0,1.0]
+    point_to_screen: [1.0,1.0]
+  S1:
+    point_to_img: [1.0,1.0]
+    point_to_screen: [1.0,1.0]
+  S2:
+    point_to_img: [1.0,1.0]
+    point_to_screen: [1.0,1.0]
+  S3:
+    point_to_img: [1.0,1.0]
+    point_to_screen: [1.0,1.0]
+  S4:
+    point_to_img: [1.0,1.0]
+    point_to_screen: [1.0,1.0]

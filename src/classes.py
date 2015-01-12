@@ -6,8 +6,9 @@ from math_functions import pos_to_2d, translate, scale, rotate
 import numpy
 import math
 import random
+import yaml
 
-# set up pygame, random number generator, font, colors and math constants
+# Set up pygame, random number generator, font, colors and math constants
 pygame.init()
 pygame.font.init()
 random.seed()
@@ -21,7 +22,15 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 PI = 3.14159265
 
-# variables for target framerate, milliseconds per animation frame,jump speed of character, and time for 1 day (in ms = 6 min)
+configs = yaml.load( file('../local/config.yaml') )
+resolution = configs['options']['resolution']
+
+default_height = 720.0
+resolution_scale = resolution[1]/default_height
+options_scale = configs['options']['scale_gui']
+
+# Variables for target framerate, milliseconds per animation frame, jump speed
+# of character, and time for 1 day (in ms = 6 min)
 FRAMES_PER_SECOND = 500
 MS_PER_FRAME = 200
 JUMP_SPEED = 1.5
@@ -53,8 +62,11 @@ class Entity(object):
 			print "Exception: ", e
 
 	def tick(self):
-		for name, component in self.components.iteritems():
-				component.tick()
+            for name, component in self.components.iteritems():
+                component.tick()
+        # Note: Maybe count how many times each `name` has been queried for.
+        # If the count is high enough, add the attribute as one of the object's if
+        # the object does not have that attribute already
 
 
 class Render(object):
@@ -64,7 +76,7 @@ class Render(object):
 		self.image = pygame.image.load(self.parent.spritesheet_file)
 		self.which_frame = 0
 		self.which_animation = 0
-	
+
 	def tick(self):
 		self.which_frame = (pygame.time.get_ticks()//MS_PER_FRAME)%self.parent.num_of_frames
 
@@ -73,29 +85,30 @@ class Render(object):
 			self.which_animation = character_sprites[ tuple( (0,1,0) ) ]
 		else:
 			self.which_animation = character_sprites[ tuple(velocity) ]
-		
+
 
 		position = self.parent.components['physics'].position
 		offset = self.parent.offset
 		num_of_frames = self.parent.num_of_frames
 		num_of_animations = self.parent.num_of_animations
 		dimensions = (self.image.get_width()/num_of_frames, self.image.get_height()/num_of_animations)
-		
+
 		point_on_screen = pos_to_2d(self.parent.components['physics'].position)
 		screen.blit(self.image,
 			(point_on_screen[0]-dimensions[0]*offset[0], point_on_screen[1]-dimensions[1]*offset[1]),
 			(self.which_frame*dimensions[0], self.which_animation*dimensions[1], dimensions[0], dimensions[1])
 		)
-		pygame.draw.line(screen, (0,0,255), pos_to_2d([0,0,0]), pos_to_2d([0,0,0]))
 
 import copy
 class Physics(object):
 	def __init__(self, parent, position, velocity=[0,0,0] ):
 		self.parent = parent
 		self.position = position
-		self.velocity = copy.copy(velocity) # If we do not use this, self.velocity will always
-											# refer to the same list in memory, no matter from
-											# which object it is referred.
+
+                # If we do not use copy, self.velocity will always
+                # refer to the same list in memory, no matter from
+                # which object it is referred.
+		self.velocity = copy.copy(velocity)
 
 	def tick(self):
 		for i in xrange(3):
@@ -163,10 +176,10 @@ class Collision(object):
 			if type(item) == RagdollBoss and type(self.parent) == Warrior:
 				pass
 
-			item_position = item.components['physics'].position	
+			item_position = item.components['physics'].position
 			box_size = item.box_size
 			points = []
-			
+
 			for corner in self.permutations:
 				points.append( [
 					item_position[0] + 1/2.0 * corner[0] * box_size[0],
@@ -174,10 +187,16 @@ class Collision(object):
 					item_position[2] + 1/2.0 * corner[2] * box_size[2],
 				] )
 
+                        # If we don't use this, there will be a collision for
+                        # every point inside the bounds
+                        stop_comparing_points = False
+
 			for point in points:
+                                if stop_comparing_points: break
 				if x_bounds[0] < point[0] < x_bounds[1]:
 					if y_bounds[0] < point[1] < y_bounds[1]:
 						if z_bounds[0] < point[2] < z_bounds[1]:
+                                                        stop_comparing_points = True
 							list_of_colliding_with_self.append(item)
 
 		for item in list_of_colliding_with_self:
@@ -283,6 +302,12 @@ class Controls(object):
 			if event.key in self.pressed_keys:
 				self.pressed_keys.remove(event.key)
 
+class FightingStats(object):
+	def __init__(self, parent):
+                self.health = 0
+                self.mana = 0
+                self.regeneration = 0
+
 class Warrior(Entity):
 	def __init__(self):
 		position = [0,0,0]
@@ -295,7 +320,7 @@ class Warrior(Entity):
 			'shadow': SShadow(self)
 		}
 
-	
+
 class Assassin(Entity):
 	def __init__(self, parent):
 		position = (0,0,0)
@@ -323,17 +348,12 @@ class SShadow(object):
 	def tick(self):
 		pass
 
-class PlayingGUI(object):
-	def __init__(self):
-		self.components = {
-			"TopLeftGUI": 'foo',
-			"TopRightGUI": 'foo',
-			"BotRightGUI": 'foo',
-			"BotLeftGUI": 'foo',
-		}
 
-	def tick(self):
-		pass
+def call_super(func, cls):
+    def wrapped(self, *args, **kwargs):
+        super(cls, self).__getattribute__(func.__name__)(self, *args, **kwargs)
+        func(self, *args, **kwargs)
+    return wrapped
 
 
 import yaml
@@ -341,14 +361,13 @@ class ResourcesClass(object):
 	def __init__(self):
 		self.data = {}
 		self.all_data = yaml.load( file('../data/resources.yaml') )
-	
+
 	def __getitem__(self, x):
 		if x not in self.data:
 			self.data[x] = self.all_data.__getitem__(x)
 		return self.data[x]
 
 Resources = ResourcesClass()
-
 
 
 
@@ -629,7 +648,7 @@ class Star(Being):
     def tick(self):
         super(self.__class__, self).tick()
         self.increment_angle()
-        
+
 # this is the shadow class for various shadows
 class Shadow(Being):
     def __init__(self,owner,owner_string,source):
@@ -637,7 +656,7 @@ class Shadow(Being):
         self.owner = owner
         self.source = source
         self.height = owner.width/4
-        
+
     def update_pos(self,owner,source):
         self.position_3d = owner.position
         self.position_3d_list = list(self.position_3d)
@@ -654,10 +673,10 @@ class Shadow(Being):
             except ArithmeticError:
                 self.position_3d_list[0] = self.owner_position_list[0]+10000
         self.position_3d = tuple(self.position_3d_list)
-        
+
         #self.position = pos_to_2d(self.position_3d)
         self.position_list = list(self.position)
-        if source.angle_actual >=0.0 and source.angle_actual <=90.0:    
+        if source.angle_actual >=0.0 and source.angle_actual <=90.0:
             try:
                 self.position_list[0] = self.position_list[0]-(owner.height*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))
             except ArithmeticError:
@@ -666,7 +685,7 @@ class Shadow(Being):
             pass
         self.position_list[1] = self.position_list[1]+owner.height-self.height/2
         self.position = tuple(self.position_list)
-    
+
     def update_scale(self,owner,source):
         #self.position = pos_to_2d(owner.position)
         if source.angle_actual >=0.0 and source.angle_actual <=90.0:
@@ -688,7 +707,7 @@ class Shadow(Being):
     def tick(self):
         super(self.__class__, self).tick()
         self.draw()
-        
+
 class Enemy(Being):
     """ A class for the enemy. Will have to have some sort of AI. """
 
