@@ -254,10 +254,10 @@ def pos_to_2d(position):
     out = numpy.dot(camera_matrix, list(position+(1,)) )
     for i in range(len(out)):
         out[i] /= out[3]
-    out[0] *= window_size_h_res
-    out[1] *= window_size_v_res
-    out[0] += window_size_h_res/2
-    out[1] += window_size_v_res/2
+    out[0] *= window_size_h
+    out[1] *= window_size_v
+    out[0] += window_size_h/2
+    out[1] += window_size_v/2
     out2 = ( int(out[0]), int(out[1]) )
     return out2
 
@@ -284,17 +284,16 @@ class Player(Being):
         self.velocity = (0,0,0)
         self.velocity_up = 0
         self.equipment = ['Sword','Shield']
-        self.equipment_held = [(),()]
+        self.equipment_held = [0,0]
         self.pressed_keys = []
         self.keys = {
-            K_w: (0,0,-RES_FACTOR),
-            K_a: (-RES_FACTOR,0,0),
-            K_s: (0,0,RES_FACTOR),
-            K_d: (RES_FACTOR,0,0),
+            K_w: (0,0,-1),
+            K_a: (-1,0,0),
+            K_s: (0,0,1),
+            K_d: (1,0,0),
             K_SPACE: (0,0,0)
         }
         self.pressed_mouse = []
-        ### for now the equipment is set in __init__, maybe use change_equipment instead?
         self.mouse = {
             'LEFT': self.equipment[1],
             'RIGHT': self.equipment[1]
@@ -304,13 +303,6 @@ class Player(Being):
         self.jumping = False
         self.lefthand = False
         self.righthand = False
-
-    # this function is for resizing from the rendered resolution to the screen resolution
-    def resize(self):
-        self.width = int(self.width * window_size_h_res/window_size_h_ren)
-        self.height = int(self.height * window_size_h_res/window_size_h_ren)
-        self.player_image_temp = pygame.transform.scale(self.player_image_temp, (self.width*10,self.height*10))
-        self.hand_image_temp = pygame.transform.scale(self.hand_image_temp, (self.width*10,self.height*4))
 
     # this function will be used later to change the equipment of the player, for now it is just copy pasta
     def change_equipment(self):
@@ -326,8 +318,8 @@ class Player(Being):
                 self.velocity = tuple(map(add,self.velocity,self.keys[key]))
 
         ### THIS NEEDS TO BE REMOVED OF PLAYER AT ONCE
-        #edges = [list(pos_to_2d( (-250,0,-250) )), list(pos_to_2d( (250,0,-250) )), list(pos_to_2d( (250,0,250) )), list(pos_to_2d( (-250,0,250) )) ]
-        #pygame.draw.polygon(screen, (0,0,255), edges )
+        edges = [list(pos_to_2d( (-250,0,-250) )), list(pos_to_2d( (250,0,-250) )), list(pos_to_2d( (250,0,250) )), list(pos_to_2d( (-250,0,250) )) ]
+        pygame.draw.polygon(screen, (0,0,255), edges )
 
         # this gets a temporary value for animation purposes and compares it to the existing value to see if it is greater (i.e. the required time MS_PER_FRAME has passed)
         # if the value is greater, the horizontal position of the part of the spritesheet that serves for the character's sprite is modified to animate it) <- if you do not understand this it's ok
@@ -357,7 +349,7 @@ class Player(Being):
                 else:
                     pass
 
-        # same as above but for right hand, and stops looping when self.righthand is no longer true and the right hand animation has ended
+        # same as above but for right hand, and stops looping when self.tighthand is no longer true and the right hand animation has ended
         if self.time_anim_temp > self.time_anim:    
                 if self.righthand_framepos == 9*self.width:
                     self.righthand_framepos = 0
@@ -370,14 +362,14 @@ class Player(Being):
         
         # dictionary to know which velocity tuple corresponds to which vertical position on the sprite sheet that will be used for the character's sprite <- if you do not understand this it's ok
         self.character_sprites = {
-            (-RES_FACTOR,0,RES_FACTOR): 0,
-            (RES_FACTOR,0,RES_FACTOR): 1,
-            (-RES_FACTOR,0,-RES_FACTOR): 2,
-            (RES_FACTOR,0,-RES_FACTOR): 3,
-            (0,0,RES_FACTOR): 4,
-            (0,0,-RES_FACTOR): 5,
-            (-RES_FACTOR,0,0): 6,
-            (RES_FACTOR,0,0): 7,
+            (-1,0,1): 0,
+            (1,0,1): 1,
+            (-1,0,-1): 2,
+            (1,0,-1): 3,
+            (0,0,1): 4,
+            (0,0,-1): 5,
+            (-1,0,0): 6,
+            (1,0,0): 7,
             (0,0,0): 8
             }
 
@@ -493,7 +485,7 @@ class Player(Being):
         
         # handle jumping in a better way than previously
         if self.jumping:
-            z = ((self.velocity_up*1 + 1.0/2*(-9.8)*((1/FRAMES_PER_SECOND)**2)))*RES_FACTOR  
+            z = self.velocity_up*1 + 1.0/2*(-9.8)*((1/FRAMES_PER_SECOND)**2)  
             self.velocity_up = self.velocity_up -9.8*1/FRAMES_PER_SECOND
             self.position = tuple(map(add, self.position, (0,z,0)))
         if self.position[1] <= 0:
@@ -535,7 +527,6 @@ class Shadow(Being):
         self.owner = owner
         self.source = source
         self.height = owner.scaled_size[0]/4
-
     # updates the shadow's position    
     def update_pos(self,owner,source):
         # using the owner's 3d position to compute the shadow's position offset when the owner jumps
@@ -646,12 +637,6 @@ class Enemy(Being):
         self.velocity = (0,0,0)
         self.velocity_randomizer = 8
         self.enemy_image_temp = pygame.image.load(os.path.join('..', 'data', 'sprites', 'bosses', 'boss.png'))
-
-    # this function is for resizing from the rendered resolution to the screen resolution
-    def resize(self):
-        self.width = int(self.width * window_size_h_res/window_size_h_ren)
-        self.height = int(self.height * window_size_h_res/window_size_h_ren)
-        self.enemy_image_temp = pygame.transform.scale(self.enemy_image_temp, (self.width*10,self.height*10))
         
     # the velocity is determined in a random way for now
     def randomize_parameters(self):
@@ -662,14 +647,14 @@ class Enemy(Being):
     # this crops the spritesheet using subsurfaces to get the correct sprite for a given action            
     def crop(self):
         self.velocity_random_assignment = {
-        0: (-RES_FACTOR,0,RES_FACTOR),
-        1: (RES_FACTOR,0,RES_FACTOR),
-        2: (-RES_FACTOR,0,-RES_FACTOR),
-        3: (RES_FACTOR,0,-RES_FACTOR),
-        4: (0,0,RES_FACTOR),
-        5: (0,0,-RES_FACTOR),
-        6: (-RES_FACTOR,0,0),
-        7: (RES_FACTOR,0,0),
+        0: (-1,0,1),
+        1: (1,0,1),
+        2: (0,0,0),
+        3: (0,0,0),
+        4: (0,0,1),
+        5: (0,0,0),
+        6: (-1,0,0),
+        7: (1,0,0),
         8: (0,0,0)
         }
         # this resets the 3D velocity tuple
@@ -686,14 +671,14 @@ class Enemy(Being):
             pass
         # dictionary to know which velocity tuple corresponds to which vertical position on the sprite sheet that will be used for the character's sprite <- if you do not understand this it's ok
         self.character_sprites = {
-            (-RES_FACTOR,0,RES_FACTOR): 0,
-            (RES_FACTOR,0,RES_FACTOR): 1,
-            (-RES_FACTOR,0,-RES_FACTOR): 2,
-            (RES_FACTOR,0,-RES_FACTOR): 3,
-            (0,0,RES_FACTOR): 4,
-            (0,0,-RES_FACTOR): 5,
-            (-RES_FACTOR,0,0): 6,
-            (RES_FACTOR,0,0): 7,
+            (-1,0,1): 0,
+            (1,0,1): 1,
+            (-1,0,-1): 2,
+            (1,0,-1): 3,
+            (0,0,1): 4,
+            (0,0,-1): 5,
+            (-1,0,0): 6,
+            (1,0,0): 7,
             (0,0,0): 8
             }
         # sets the character's sprite to the default non-moving player sprite if velocity is 0
@@ -721,7 +706,7 @@ class Enemy(Being):
         # now resizing sprites for enemy
         self.enemy_image = pygame.transform.scale(self.enemy_image, (int(self.scaled_size_float[0]),int(self.scaled_size_float[1])))
         
-    # moving the enemy
+    #moving the enemy
     def move(self):
             self.velocity_list = list(self.velocity)
             self.velocity_list = [self.velocity_list[i]/5.0 for i in range(3)]
