@@ -306,10 +306,12 @@ class Player(Being):
         self.righthand = False
 
     def resize(self):
-        self.width = self.width * window_size_h_res/window_size_h_ren
-        self.height = self.height * window_size_v_res/window_size_v_ren
-        self.player_image_temp = pygame.transform.rotozoom(self.player_image_temp, 0, (window_size_h_res/window_size_h_ren))
-        self.hand_image_temp = pygame.transform.rotozoom(self.hand_image_temp, 0, (window_size_h_res/window_size_h_ren))
+        self.width = int(self.width * window_size_h_res/window_size_h_ren)
+        self.height = int(self.height * window_size_h_res/window_size_h_ren)
+        self.player_image_temp = pygame.transform.scale(self.player_image_temp, (self.width*10,self.height*10))
+        self.hand_image_temp = pygame.transform.scale(self.hand_image_temp, (self.width*10,self.height*4))
+        #self.player_image_temp = pygame.transform.rotozoom(self.player_image_temp, 0, (window_size_h_res/window_size_h_ren))
+        #self.hand_image_temp = pygame.transform.rotozoom(self.hand_image_temp, 0, (window_size_h_res/window_size_h_ren))
 
     # this function will be used later to change the equipment of the player, for now it is just copy pasta
     def change_equipment(self):
@@ -647,9 +649,10 @@ class Enemy(Being):
         self.enemy_image_temp = pygame.image.load(os.path.join('..', 'data', 'sprites', 'bosses', 'boss.png'))
 
     def resize(self):
-        self.width = self.width * window_size_h_res/window_size_h_ren
-        self.height = self.height * window_size_v_res/window_size_v_ren
-        self.enemy_image_temp = pygame.transform.rotozoom(self.enemy_image_temp, 0, (window_size_h_res/window_size_h_ren))
+        self.width = int(self.width * window_size_h_res/window_size_h_ren)
+        self.height = int(self.height * window_size_h_res/window_size_h_ren)
+        self.enemy_image_temp = pygame.transform.scale(self.enemy_image_temp, (self.width*10,self.height*10))
+        #self.enemy_image_temp = pygame.transform.rotozoom(self.enemy_image_temp, 0, (window_size_h_res/window_size_h_ren))
         
     # the velocity is determined in a random way for now
     def randomize_parameters(self):
