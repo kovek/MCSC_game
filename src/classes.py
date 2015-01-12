@@ -254,10 +254,10 @@ def pos_to_2d(position):
     out = numpy.dot(camera_matrix, list(position+(1,)) )
     for i in range(len(out)):
         out[i] /= out[3]
-    out[0] *= window_size_h
-    out[1] *= window_size_v
-    out[0] += window_size_h/2
-    out[1] += window_size_v/2
+    out[0] *= window_size_h_res
+    out[1] *= window_size_v_res
+    out[0] += window_size_h_res/2
+    out[1] += window_size_v_res/2
     out2 = ( int(out[0]), int(out[1]) )
     return out2
 
@@ -284,7 +284,7 @@ class Player(Being):
         self.velocity = (0,0,0)
         self.velocity_up = 0
         self.equipment = ['Sword','Shield']
-        self.equipment_held = [0,0]
+        self.equipment_held = [(),()]
         self.pressed_keys = []
         self.keys = {
             K_w: (0,0,-1),
@@ -294,6 +294,7 @@ class Player(Being):
             K_SPACE: (0,0,0)
         }
         self.pressed_mouse = []
+        ### for now the equipment is set in __init__, maybe use change_equipment instead?
         self.mouse = {
             'LEFT': self.equipment[1],
             'RIGHT': self.equipment[1]
@@ -303,6 +304,12 @@ class Player(Being):
         self.jumping = False
         self.lefthand = False
         self.righthand = False
+
+    def resize(self):
+        self.width = self.width * window_size_h_res/window_size_h_ren
+        self.height = self.height * window_size_v_res/window_size_v_ren
+        self.player_image_temp = pygame.transform.rotozoom(self.player_image_temp, 0, (window_size_h_res/window_size_h_ren))
+        self.hand_image_temp = pygame.transform.rotozoom(self.hand_image_temp, 0, (window_size_h_res/window_size_h_ren))
 
     # this function will be used later to change the equipment of the player, for now it is just copy pasta
     def change_equipment(self):
@@ -318,8 +325,8 @@ class Player(Being):
                 self.velocity = tuple(map(add,self.velocity,self.keys[key]))
 
         ### THIS NEEDS TO BE REMOVED OF PLAYER AT ONCE
-        edges = [list(pos_to_2d( (-250,0,-250) )), list(pos_to_2d( (250,0,-250) )), list(pos_to_2d( (250,0,250) )), list(pos_to_2d( (-250,0,250) )) ]
-        pygame.draw.polygon(screen, (0,0,255), edges )
+        #edges = [list(pos_to_2d( (-250,0,-250) )), list(pos_to_2d( (250,0,-250) )), list(pos_to_2d( (250,0,250) )), list(pos_to_2d( (-250,0,250) )) ]
+        #pygame.draw.polygon(screen, (0,0,255), edges )
 
         # this gets a temporary value for animation purposes and compares it to the existing value to see if it is greater (i.e. the required time MS_PER_FRAME has passed)
         # if the value is greater, the horizontal position of the part of the spritesheet that serves for the character's sprite is modified to animate it) <- if you do not understand this it's ok
@@ -349,7 +356,7 @@ class Player(Being):
                 else:
                     pass
 
-        # same as above but for right hand, and stops looping when self.tighthand is no longer true and the right hand animation has ended
+        # same as above but for right hand, and stops looping when self.righthand is no longer true and the right hand animation has ended
         if self.time_anim_temp > self.time_anim:    
                 if self.righthand_framepos == 9*self.width:
                     self.righthand_framepos = 0
@@ -527,6 +534,7 @@ class Shadow(Being):
         self.owner = owner
         self.source = source
         self.height = owner.scaled_size[0]/4
+
     # updates the shadow's position    
     def update_pos(self,owner,source):
         # using the owner's 3d position to compute the shadow's position offset when the owner jumps
@@ -637,6 +645,11 @@ class Enemy(Being):
         self.velocity = (0,0,0)
         self.velocity_randomizer = 8
         self.enemy_image_temp = pygame.image.load(os.path.join('..', 'data', 'sprites', 'bosses', 'boss.png'))
+
+    def resize(self):
+        self.width = self.width * window_size_h_res/window_size_h_ren
+        self.height = self.height * window_size_v_res/window_size_v_ren
+        self.enemy_image_temp = pygame.transform.rotozoom(self.enemy_image_temp, 0, (window_size_h_res/window_size_h_ren))
         
     # the velocity is determined in a random way for now
     def randomize_parameters(self):
@@ -706,7 +719,7 @@ class Enemy(Being):
         # now resizing sprites for enemy
         self.enemy_image = pygame.transform.scale(self.enemy_image, (int(self.scaled_size_float[0]),int(self.scaled_size_float[1])))
         
-    #moving the enemy
+    # moving the enemy
     def move(self):
             self.velocity_list = list(self.velocity)
             self.velocity_list = [self.velocity_list[i]/5.0 for i in range(3)]
