@@ -130,11 +130,11 @@ class OptionInContainer(OnScreenImage):
 
     def draw(self, x, y, width):
         for i in xrange(4):
-            screen.blit(self.corners[i], (x,y) )
+            screen_render.blit(self.corners[i], (x,y) )
         for i in xrange(4):
-            screen.blit(self.borders[i], (x,y) )
+            screen_render.blit(self.borders[i], (x,y) )
         #figure_out_height_given_font(font, text, width)
-        screen.blit(self.filler, (x+size_of_corner,y+size_of_corner) )
+        screen_render.blit(self.filler, (x+size_of_corner,y+size_of_corner) )
 
 class OnField(OnScreenImage):
     """ Something on the battlefield. Like a fireball or a boss or a player.
@@ -220,6 +220,9 @@ def scale(x, y, z):
         [0,0,0,1.0]
     ]
 
+def draw_frame():
+    screen_draw = pygame.transform.smoothscale(screen_render, (int(window_size_h_res), int(window_size_v_res)))
+    screen_render.fill(BLACK)
 
 # Numbers needed for depth perception
 fzNear = 10.0
@@ -228,7 +231,7 @@ frustumScale = 0.9 # Gots to be just enough to englobe the whole field
 
 # Numbers about "camera"
 length_of_field = 500
-width_of_field = 200
+width_of_field = 200    
 elevation_of_camera = 50
 push_back_of_camera_from_field = 10
 push_back_of_camera = length_of_field/2 + push_back_of_camera_from_field
@@ -254,13 +257,12 @@ def pos_to_2d(position):
     out = numpy.dot(camera_matrix, list(position+(1,)) )
     for i in range(len(out)):
         out[i] /= out[3]
-    out[0] *= window_size_h
-    out[1] *= window_size_v
-    out[0] += window_size_h/2
-    out[1] += window_size_v/2
+    out[0] *= window_size_h_ren
+    out[1] *= window_size_v_ren
+    out[0] += window_size_h_ren/2
+    out[1] += window_size_v_ren/2
     out2 = ( int(out[0]), int(out[1]) )
     return out2
-
 
 class Player(Being):
     """ """
@@ -284,7 +286,7 @@ class Player(Being):
         self.velocity = (0,0,0)
         self.velocity_up = 0
         self.equipment = ['Sword','Shield']
-        self.equipment_held = [0,0]
+        self.equipment_held = [(),()]
         self.pressed_keys = []
         self.keys = {
             K_w: (0,0,-1),
@@ -422,9 +424,9 @@ class Player(Being):
 
     # draws the player, left hand and right hand      
     def draw(self):
-        screen.blit(self.player_image, pos_to_2d(self.position))
-        screen.blit(self.hand_image_left, pos_to_2d(self.position))
-        screen.blit(self.hand_image_right, pos_to_2d(self.position))
+        screen_render.blit(self.player_image, pos_to_2d(self.position))
+        screen_render.blit(self.hand_image_left, pos_to_2d(self.position))
+        screen_render.blit(self.hand_image_right, pos_to_2d(self.position))
 
     # some stuff to determine which keys and mouse buttons are pressed
     def key_event(self, event):
@@ -485,7 +487,7 @@ class Player(Being):
         
         # handle jumping in a better way than previously
         if self.jumping:
-            z = self.velocity_up*1 + 1.0/2*(-9.8)*((1/FRAMES_PER_SECOND)**2)  
+            z = self.velocity_up*1 + 1.0/2*(-9.8.8)*((1/FRAMES_PER_SECOND)**2)  
             self.velocity_up = self.velocity_up -9.8*1/FRAMES_PER_SECOND
             self.position = tuple(map(add, self.position, (0,z,0)))
         if self.position[1] <= 0:
@@ -616,7 +618,7 @@ class Shadow(Being):
     def draw(self,*position):
         self.update_scale(self.owner,self.source)
         self.update_pos(self.owner,self.source)
-        screen.blit(self.shadow_image_scaled, self.position)
+        screen_render.blit(self.shadow_image_scaled, self.position)
     def tick(self):
         super(self.__class__, self).tick()
         self.draw()
@@ -701,7 +703,7 @@ class Enemy(Being):
         self.scale_factor = float(self.position_f_2d[0]-self.position_i_2d[0])/float(self.width)
         self.scaled_size = [int(self.scale_factor*self.width),int(self.scale_factor*self.height)]
         self.scaled_size_float = [float(self.scale_factor*self.width),float(self.scale_factor*self.height)]
-        print self.scaled_size_float
+        """print self.scaled_size_float""" #debug
 
         # now resizing sprites for enemy
         self.enemy_image = pygame.transform.scale(self.enemy_image, (int(self.scaled_size_float[0]),int(self.scaled_size_float[1])))
@@ -715,7 +717,7 @@ class Enemy(Being):
 
     # draws the enemy
     def draw(self):
-        screen.blit(self.enemy_image, pos_to_2d(self.position))
+        screen_render.blit(self.enemy_image, pos_to_2d(self.position))
 
     def tick(self):
         super(self.__class__, self).tick()
@@ -775,7 +777,6 @@ class GuiText(GuiItem):
     def tick(self):
         super(self.__class__, self).tick()
         self.draw(self.position_x,self.position_y)
-
 
 class Manager(object):
     """ The Manager of the whole game?
