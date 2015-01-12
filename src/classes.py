@@ -21,7 +21,7 @@ BLUE = (0, 0, 255)
 PI = 3.14159265
 
 # variables for target framerate, milliseconds per animation frame,jump speed of character, and time for 1 day (in ms = 6 min)
-FRAMES_PER_SECOND = 500
+FRAMES_PER_SECOND = 100
 MS_PER_FRAME = 200
 JUMP_SPEED = 1.5
 DAY_TIME = 360000
@@ -220,10 +220,6 @@ def scale(x, y, z):
         [0,0,0,1.0]
     ]
 
-def draw_frame():
-    screen_draw = pygame.transform.smoothscale(screen_render, (int(window_size_h_res), int(window_size_v_res)))
-    screen_render.fill(BLACK)
-
 # Numbers needed for depth perception
 fzNear = 10.0
 fzFar = 510.0
@@ -300,8 +296,8 @@ class Player(Being):
             'LEFT': self.equipment[1],
             'RIGHT': self.equipment[1]
         }
-        self.player_image_temp = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'player_anim.png'))
-        self.hand_image_temp = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'hands_anim.png'))
+        self.player_image_temp = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'player_anim.png')).convert_alpha()
+        self.hand_image_temp = pygame.image.load(os.path.join('..', 'data', 'sprites', 'classes', 'hands_anim.png')).convert_alpha()
         self.jumping = False
         self.lefthand = False
         self.righthand = False
@@ -487,7 +483,7 @@ class Player(Being):
         
         # handle jumping in a better way than previously
         if self.jumping:
-            z = self.velocity_up*1 + 1.0/2*(-9.8.8)*((1/FRAMES_PER_SECOND)**2)  
+            z = self.velocity_up*1 + 1.0/2*(-9.8)*((1/FRAMES_PER_SECOND)**2)  
             self.velocity_up = self.velocity_up -9.8*1/FRAMES_PER_SECOND
             self.position = tuple(map(add, self.position, (0,z,0)))
         if self.position[1] <= 0:
@@ -525,7 +521,7 @@ class Star(Being):
 class Shadow(Being):
     #self; owner is the thing that generates the shadow (its attributes are used extensively), owner_string is used to load the correct shadow, source is the stars (currently 1) that contribute to shadow generation
     def __init__(self,owner,owner_string,source):
-        self.shadow_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'shadows', owner_string+'_shadow.png'))
+        self.shadow_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'shadows', owner_string+'_shadow.png')).convert_alpha()
         self.owner = owner
         self.source = source
         self.height = owner.scaled_size[0]/4
@@ -563,17 +559,25 @@ class Shadow(Being):
         self.position_list = list(self.position)
         # for angles between 0 and 90 degrees, the shadow's x-position has to be offset to the left by an amount equivalent to its length since it's to the left of the owner
         if source.angle_actual >=0.0 and source.angle_actual <=90.0:
+            # copying the value of the sun's angle to the shadow's angle unless it's too small (to avoid shadow being too large and crash) 
+            if source.angle_actual < 3.0:
+                self.shadow_angle = 3.0*PI/180
+            else:
+                self.shadow_angle = source.angle_actual*PI/180
             # shadow's x-position is its own x-position - its length, which is represented by: owner's height * cot(angle)
+            self.position_list[0] = self.position_list[0]-(owner.scaled_size[1]*(math.cos(self.shadow_angle)/math.sin(self.shadow_angle)))
+            """# shadow's x-position is its own x-position - its length, which is represented by: owner's height * cot(angle)
             try:
                 self.position_list[0] = self.position_list[0]-(owner.scaled_size[1]*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))
             # if cot(angle) = infinity, shadow's length is 10000
+            except ArithmeticError:
+                self.position_list[0] = self.position_list[0]-(owner.scaled_size[1]*(math.cos(0.2*PI/180)/math.sin(0.2*PI/180)))
             except:
                  self.position_list[0] = self.position_list[0]-10000
             # if cot(angle) is such that the shadow's length exceeds 10000, it becomes 10000
             else:
                 if (owner.scaled_size[1]*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
-                    self.position_list[0] = self.position_list[0]+(owner.scaled_size[1]*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))-10000
-                    """print "Corrected!""""" #debug
+                    self.position_list[0] = self.position_list[0]+(owner.scaled_size[1]*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180)))-10000"""
         # for angles between 90 and 180 degrees, the shadow's x-position does not need offset since it's to the right of the owner
         elif source.angle_actual >90.0 and source.angle_actual <=180.0:
             pass
@@ -587,30 +591,46 @@ class Shadow(Being):
         self.height = owner.scaled_size[0]/4
         # for angles between 0 and 90 degrees, cot(angle) is positive and requires no adjustment
         if source.angle_actual >=0.0 and source.angle_actual <=90.0:
+            # copying the value of the sun's angle to the shadow's angle unless it's too small (to avoid shadow being too large and crash)
+            if source.angle_actual < 3.0:
+                self.shadow_angle = 3.0*PI/180
+            else:
+                self.shadow_angle = source.angle_actual*PI/180
             # shadow's length is equal to owner's height * cot(angle) and increased by owner's width (to make its minimum size the owner's width)
+            self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.scaled_size[0]+owner.scaled_size[1]*(math.cos(self.shadow_angle)/math.sin(self.shadow_angle))),self.height))
+            """# shadow's length is equal to owner's height * cot(angle) and increased by owner's width (to make its minimum size the owner's width)
             try:
                 self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.scaled_size[0]+owner.scaled_size[1]*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),self.height))
             # if cot(angle) = infinity, shadow's length is 10000 and increased by owner's width
+            except ArithmeticError:
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.scaled_size[0]+owner.scaled_size[1]*(math.cos(0.2*PI/180)/math.sin(0.2*PI/180))),self.height))
             except:
                 self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.scaled_size[0]+10000,self.height))
             # if cot(angle) is such that the shadow's length exceeds 10000, it becomes 10000 and increased by owner's width
             else:
                 if (owner.scaled_size[0]+owner.scaled_size[1]*(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
-                    self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.scaled_size[0]+10000,self.height))
-                    """print "Corrected!""""" #debug
+                    self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.scaled_size[0]+10000,self.height))"""
         # for angles between 90 and 180 degrees, cot(angle) is negative and thus abs(cot(angle)) must be used
         elif source.angle_actual >90.0 and source.angle_actual <=180.0:
+            # copying the value of the sun's angle to the shadow's angle unless it's too large (to avoid shadow being too large and crash)
+            if source.angle_actual > 177.0:
+                self.shadow_angle = 177.0*PI/180
+            else:
+                self.shadow_angle = source.angle_actual*PI/180
             # shadow's length is equal to owner's height * abs(cot(angle)) and increased by owner's width (to make its minimum size the owner's width)
+            self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.scaled_size[0]+owner.scaled_size[1]*abs(math.cos(self.shadow_angle)/math.sin(self.shadow_angle))),self.height))
+            """# shadow's length is equal to owner's height * abs(cot(angle)) and increased by owner's width (to make its minimum size the owner's width)
             try:
                 self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.scaled_size[0]+owner.scaled_size[1]*abs(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))),self.height))
             # if abs(cot(angle)) = infinity, shadow's length is 10000 and increased by owner's width
+            except ArithmeticError:
+                self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (int(owner.scaled_size[0]+owner.scaled_size[1]*abs(math.cos(179.7*PI/180)/math.sin(179*PI/180))),self.height))
             except:
                 self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.scaled_size[0]+10000,self.height))
             # if cot(angle) is such that the shadow's length exceeds 10000, it becomes 10000 and increased by owner's width
             else:
                 if (owner.scaled_size[0]+owner.scaled_size[1]*abs(math.cos(source.angle_actual*PI/180)/math.sin(source.angle_actual*PI/180))) > 10000:
-                    self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.scaled_size[0]+10000,self.height))
-                    """print "Corrected!""""" #debug
+                    self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (owner.scaled_size[0]+10000,self.height))"""
         # for angles above 180 degrees, the shadow does not appear and thus its size becomes 0
         elif source.angle_actual >180.0:
             self.shadow_image_scaled = pygame.transform.smoothscale(self.shadow_image, (0,0))
@@ -621,7 +641,11 @@ class Shadow(Being):
         screen_render.blit(self.shadow_image_scaled, self.position)
     def tick(self):
         super(self.__class__, self).tick()
-        self.draw()
+        # sometimes drawing will not work because the shadow is still too damn large
+        try:
+            self.draw()
+        except:
+            pass
         
 class Enemy(Being):
     """ A class for the enemy. Will have to have some sort of AI. """
@@ -638,7 +662,7 @@ class Enemy(Being):
         self.position = (random.randint(-100,100),0,random.randint(-500,-400))
         self.velocity = (0,0,0)
         self.velocity_randomizer = 8
-        self.enemy_image_temp = pygame.image.load(os.path.join('..', 'data', 'sprites', 'bosses', 'boss.png'))
+        self.enemy_image_temp = pygame.image.load(os.path.join('..', 'data', 'sprites', 'bosses', 'boss.png')).convert_alpha()
         
     # the velocity is determined in a random way for now
     def randomize_parameters(self):
@@ -706,12 +730,12 @@ class Enemy(Being):
         """print self.scaled_size_float""" #debug
 
         # now resizing sprites for enemy
-        self.enemy_image = pygame.transform.scale(self.enemy_image, (int(self.scaled_size_float[0]),int(self.scaled_size_float[1])))
+        self.enemy_image = pygame.transform.smoothscale(self.enemy_image, (int(self.scaled_size_float[0]),int(self.scaled_size_float[1])))
         
     #moving the enemy
     def move(self):
             self.velocity_list = list(self.velocity)
-            self.velocity_list = [self.velocity_list[i]/5.0 for i in range(3)]
+            self.velocity_list = [self.velocity_list[i]/2.0 for i in range(3)]
             self.velocity = tuple(self.velocity_list)
             self.position = tuple(map(add, self.position, self.velocity)) # Add movement to position
 
@@ -731,7 +755,7 @@ class GuiStatic(GuiItem):
     # self; image is the supplied image file, posx and posy are the supplied (x,y) coordinates
     def __init__(self,image,posx,posy):
         # initializes static gui item from supplied image file
-        self.gui_item = pygame.image.load(os.path.join('..', 'data', 'gui', image))
+        self.gui_item = pygame.image.load(os.path.join('..', 'data', 'gui', image)).convert_alpha()
         # sets x and y position for gui item to supplied (x,y) coordinates
         self.position_x = posx
         self.position_y = posy
@@ -747,7 +771,7 @@ class GuiDynamic(GuiItem):
     # self; image is the supplied image file, posx and posy are the supplied (x,y) coordinates, size is the size of the dynamic gui item when it is full, percent is the amount of dynamic gui item to display (0<=percent<=1)
     def __init__(self,image,posx,posy,size,percent):
         # initializes dynamic gui item from supplied image file
-        self.gui_item = pygame.image.load(os.path.join('..', 'data', 'gui', image))
+        self.gui_item = pygame.image.load(os.path.join('..', 'data', 'gui', image)).convert_alpha()
         # sets x and y position for gui item to supplied (x,y) coordinates
         self.position_x = posx
         self.position_y = posy

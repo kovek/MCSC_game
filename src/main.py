@@ -2,18 +2,21 @@ import pygame, sys, os
 from pygame.locals import *
 from enum import Enum
 import classes
-from classes import draw_frame
 
-# set up pygame
+# set up pygame and init
+
 pygame.init()
+is_online = False
+
 # this bypasses the resolution selection and makes it 1080p by default, get rekt peasants
 bypass = 1
-window_size_h_ren = 7680.0
-window_size_v_ren = 4320.0
-aspect_ratio = ()
-sun_degree = 0
+# the engine resolution at which everything is rendered, all computations are done with respect to this resolution
+window_size_h_ren = 3840.0
+window_size_v_ren = 2160.0
+aspect_ratio = (16,9)
+# querying for display resolution (and aspect ratio) at which everything is drawn
 if bypass == 0:
-    print "Sup m8 this game runs only at 16:9 or 16:10 aspect ratios with a max resolution of 3840x2400, umad ppl stuck in 2005 or future time travelers? XD"
+    print "Sup m8 this game runs only at 16:9 or 16:10 aspect ratios with a max resolution of 3840x2400, umad ppl stuck in 2005 (4:3) or fat basement nerds (21:9)? XD"
     while True:
         print "Gimme aspect ratio: 16,10 or 16,9:"
         # get input for aspect ratio, get new one if not (16,9) or (16,10) or a tuple
@@ -70,25 +73,21 @@ if bypass == 0:
                 print "U 'avin a giggle m8? Horizontal and vertical size not matching aspect ratio? Get rekt scrub"
             elif window_size_h_res/window_size_v_res == float(aspect_ratio[0])/float(aspect_ratio[1]):
                 break
-
+# or default parameters
 elif bypass == 1:
     window_size_h_res = 1920.0
     window_size_v_res = 1080.0
     aspect_ratio = (16,9)
-#RES_FACTOR = window_size_h_res/window_size_h_ren
 
 # offsets for gui items to remain at the same relative place regardless of screen size
 offset_h = (window_size_h_res-1440)/2
 offset_v = (window_size_v_res-900)
-is_online = False
 
-# set up the window
+# set up the different surfaces needed for drawing, screen is where GUI is drawn (it is not scaled and thus drawn directly on screen, maybe an option for small/medium/large will be added sometime); screen_render is where everything is rendered, screen_draw is the finished frame
 screen = pygame.display.set_mode((int(window_size_h_res), int(window_size_v_res)), 0, 32)
 classes.screen = screen
-screen_render = pygame.Surface((int(window_size_h_ren), int(window_size_v_ren)))
-classes.screen_render = screen_render
+classes.screen_render = pygame.Surface((int(window_size_h_ren), int(window_size_v_ren)))
 screen_draw = pygame.Surface((int(window_size_h_res), int(window_size_v_res)))
-classes.screen_draw = screen_draw
 
 # Set up the colors
 BLACK = (0, 0, 0)
@@ -112,13 +111,6 @@ enemy_hp_value = 15000.0
 health_percentage = health_value/max_health_value
 mana_percentage = mana_value/max_mana_value
 enemy_hp_percentage = enemy_hp_value/max_enemy_hp_value
-
-
-# draw the black background onto the surface
-#screen.fill(BLACK)
-
-# draw the window onto the screen
-#pygame.display.update()
 
 # initialization of every element of the game (player, enemies, gui items)
 ###this should be moved to some other class eventually
@@ -155,11 +147,12 @@ focus = player
 State = Enum('State', 'playing menu paused')
 state = State.playing
 
-# things_on_screen contains everything that must be drawn by pygame.
+# things_objects are things that need to be rendered, things_gui are just gui items, things_other are things that have ticks but are not drawn
 things_objects = [player_shadow, player, boss_shadow, boss]
 things_gui = [hp_container, mana_container, enemy_bar_container,square0,square1,square2,square3,square4,square5,hp_bar,mana_bar,enemy_bar,hp_text,mana_text,lh_text,rh_text,s1_text,s2_text,s3_text,s4_text]
 things_other = [sun]
 things_on_screen = things_gui+things_objects+things_other
+classes.things_on_screen = things_on_screen
 
 # run the game loop
 while True:
@@ -169,10 +162,17 @@ while True:
         pass
         # don't move anything
     else:
-        for thing in things_on_screen:
+        # tick for everything that is not gui items
+        for thing in things_objects:
             thing.tick()
+        for thing in things_other:
+            thing.tick()
+        # converting render surface into drawn surface, for now, for 16:10 it's simply stretched vertically, change that eventually
         screen_draw = pygame.transform.smoothscale(classes.screen_render, (int(window_size_h_res), int(window_size_v_res)))
         screen.blit(screen_draw, (0,0))
+        # tick for gui items, that are drawn last
+        for thing in things_gui:
+            thing.tick()
     
     # Handle events (keys)
     for event in pygame.event.get():
