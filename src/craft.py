@@ -84,9 +84,15 @@ elif metal_type == 3:
     gem_3_qtty = gem_qtty
     inv_g3_qtty = inv_g3_qtty - gem_qtty
 #En bas: tree prototype
-dict = {1111 : 'pistol', 1211: 'shotgun', 1311: 'potato launcher'}
+#dict = {1111 : 'pistol', 1211: 'shotgun', 1311: 'potato launcher'}
+crafting_list = [metal_type, metal_qtty, gem_type, gem_qtty]
+if crafting_list == [1,1,1,1]:
+    print "pistol"
+elif crafting_list == [1,2,1,1]:
+    print "shotgun"
+elif crafting_list == [2,1,1,1]:
+    print "ship"
 
-
-print dict[metal_type*1000 + metal_qtty*100 + 10*gem_type + gem_qtty]
+#print dict[metal_type*1000 + metal_qtty*100 + 10*gem_type + gem_qtty]
 #we can add more possibilities (more metals, more gems, more stuff (rocks? idk) just need to edit the recipes
 
