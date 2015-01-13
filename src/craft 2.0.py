@@ -17,38 +17,27 @@ gem_qtty = 0
 gem_1_qtty = 0
 gem_2_qtty = 0
 gem_3_qtty = 0
-print 'Wat metal type??'
+pygame.init()
+keys=pygame.key.get_pressed()
 while True:
-    try:
-        metal_type = input()
-    except:
-        print '1 2 or 3'
-    else:
-        if metal_type == 1 or metal_type == 2 or metal_type == 3:
-            break
-        else:
-            print 'Tas un ptit zizi  1 2 ou 3'
-            pass
-print 'How much metal'
-while True:
-    try :
-        metal_qtty = input()
-    except:
-        print '1 2 or 3'
-    else:
-        if metal_qtty == 1 or metal_qtty == 2 or metal_qtty == 3:
-            break
-        else:
-            print '1 2 or 3 n00blord'
-            pass
+    keys=pygame.key.get_pressed()
+    print keys
+    if K_1 in keys:
+        metal_type = 1
+        metal_1_qtty = metal_1_qtty + 1
+        print "metal 1 added, current amount:", metal_1_qtty
+    elif keys[K_2]:
+        metal_type = 2
+        metal_2_qtty = metal_2_qtty + 1
+        print "metal 2 added, current amount:", metal_2_qtty
+    elif keys[K_3]:
+        metal_type = 3
+        metal_3_qtty = metal_3_qtty + 1
 if metal_type == 1:
-    metal_1_qtty = metal_qtty
     inv_m1_qtty = inv_m1_qtty - metal_qtty
 elif metal_type == 2:
-        metal_2_qtty = metal_qtty
         inv_m2_qtty = inv_m2_qtty - metal_qtty
 elif metal_type == 3:
-        metal_3_qtty = metal_qtty
         inv_m3_qtty = inv_m3_qtty - metal_qtty
 #^set le type et le nombre de metal
 #mtn gems
