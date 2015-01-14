@@ -1,21 +1,11 @@
 from __future__ import absolute_import
 from classes import Entity
 import pygame, sys, os
-from classes import Resources, resolution_scale, options_scale, resolution
+from classes import Resources, resolution_scale, options_scale, resolution, System
 
-class GUIItem(Entity):
-	def __init__(self, name):
-            self.name = name
-            self.components = {
-                'background': GUIBackground(self),
-                'content': GUIDynamicContent(self),
-                'border': GUIBorder(self),
-            }
-
-        def tick(self):
-            self.components['background'].tick()
-            self.components['content'].tick()
-            self.components['border'].tick()
+class GUIManager(System):
+    components = set([])
+    pass
 
 class GUIContainer(Entity):
 	def __init__(self, main_char, **kwargs):
@@ -72,7 +62,15 @@ class GUIDynamicContent(object):
 
             dimensions = gui_resource['dimensions']
 
-            screen.blit(self.image,
+            k = 1.0
+            if "linked_entity" in dir(self):
+                k = self.linked_entity.components['stats'].health/\
+                    self.linked_entity.components['stats'].max_health
+
+            cropped = pygame.Surface( (self.image.get_width()*k, self.image.get_height()) )
+            cropped.blit(self.image, (0,0))
+
+            screen.blit(cropped,
                 (position_on_screen[0] * resolution[0] - position_on_img[0] * dimensions[0] * options_scale * resolution_scale,
                 position_on_screen[1] * resolution[1] - position_on_img[1] * dimensions[1] * options_scale * resolution_scale)
             )
@@ -207,4 +205,37 @@ class GUIBorder(object):
                 self.position_on_screen[1] * resolution[1] - self.position_on_img[1] * self.final_gui_item.get_height()),
             )
 
+
+class GUIItem(Entity):
+	def __init__(self, name):
+            self.name = name
+            self.components = {
+                'background': GUIBackground(self),
+                'content': GUIDynamicContent(self),
+                'border': GUIBorder(self),
+            }
+            GUIManager.components.add(self)
+
+        def tick(self):
+            self.components['background'].tick()
+            self.components['content'].tick()
+            self.components['border'].tick()
+
+class PlayingGUI(Entity):
+    components = {
+        'health_bar': GUIItem('health'),
+        'mana_bar': GUIItem('mana'),
+        'boss_health': GUIItem('boss_health'),
+        'left_hand': GUIItem('left_hand'),
+        'right_hand': GUIItem('right_hand'),
+        'spell1': GUIItem('spell1'),
+        'spell2': GUIItem('spell2'),
+        'spell3': GUIItem('spell3'),
+        'spell4': GUIItem('spell4'),
+    }
+
+    @classmethod
+    def tick(cls):
+        for key, component in cls.components.iteritems():
+            component.tick()
 
