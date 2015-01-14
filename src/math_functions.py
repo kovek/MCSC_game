@@ -65,12 +65,27 @@ perspectiveMatrix = [
     [0,             0,              -1.0,                               0.0]
 ]
 
+right = 550.0
+left = -550.0
+top = 200.0
+bottom = -200.0
+near = -200.0
+far = 450.0
+
+orthogonalMatrix = [
+    [2/(right-left),    0,              0,              -(right+left)/(right-left)],
+    [0,                 2/(top-bottom), 0,              -(top+bottom)/(top-bottom)],
+    [0,                 0,              -2/(far-near),  (far+near)/(far-near)],
+    [0,                 0,              0,              1.0]
+]
+
 # Our transformations applied by doing dot products.
 translation_of_camera =  translate(0.0, -elevation_of_camera, -push_back_of_camera)
 rotation_of_camera = rotate(angle_of_camera, 0.0)
 camera_matrix = numpy.dot(rotation_of_camera, translation_of_camera)
 camera_matrix = numpy.dot(scale(1.0,-1.0,1.0), camera_matrix)
-camera_matrix = numpy.dot(perspectiveMatrix, camera_matrix)
+camera_matrix = numpy.dot(orthogonalMatrix, camera_matrix)
+#camera_matrix = numpy.dot(perspectiveMatrix, camera_matrix)
 
 inverse_camera_matrix = numpy.linalg.inv(perspectiveMatrix)
 inverse_camera_matrix = numpy.dot(numpy.linalg.inv(scale(1.0,-1.0,1.0)), inverse_camera_matrix)
