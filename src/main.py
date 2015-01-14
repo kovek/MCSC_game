@@ -7,8 +7,11 @@ import guiclasses
 
 configs = yaml.load( file('../local/config.yaml') )
 
-# set up pygame
+# set up pygame and init
+
 pygame.init()
+is_online = False
+
 # this bypasses the resolution selection and makes it 1080p by default, get rekt peasants
 bypass = True
 window_size_h = 0
@@ -28,17 +31,52 @@ if not bypass:
             if window_size_h >= 1440:
                 break
             else:
-                print "U 'avin a giggle m80? Gimme horizontal size at least 1440"
-                pass
-    print "Gimme window vertical size in pixels:"
-    # get input for vertical size, get new one if below 900 px or not an int
-    while True:
-        try:
-            window_size_v = input()
-        except:
-            print "U 'avin a giggle m8? Gimme vertical size as an int, at least 900"
+                if aspect_ratio == (16,10) or aspect_ratio == (16,9):
+                    break
+                else:
+                    print "U 'avin a giggle m8? Gimme aspect ratio 16,10 or 16,9"
+                    pass
+        print "Gimme window horizontal size in pixels or enter 0 to skip:"
+        # get input for horizontal size, get new one if above 3840 px or not an int
+        while True:
+            try:
+                window_size_h_res = input()
+            except:
+                print "U 'avin a giggle m8? Gimme horizontal size as an int"
+            else:
+                if window_size_h_res <=3840:
+                    window_size_h_res = float(window_size_h_res)
+                    break
+
+                else:
+                    print "U 'avin a giggle m80? Gimme horizontal size at most 3840"
+                    pass
+        print "Gimme window vertical size in pixels or enter 0 to skip:"
+        # get input for vertical size, get new one if below 900 px or not an int
+        while True:
+            try:
+                window_size_v_res = input()
+            except:
+                print "U 'avin a giggle m8? Gimme vertical size as an int"
+            else:
+                if window_size_v_res <=2400:
+                    window_size_v_res = float(window_size_v_res)
+                    break
+                else:
+                    print "U 'avin a giggle m80? Gimme vertical size at most 2400"
+                    pass
+        if window_size_h_res == 0 and window_size_v_res == 0:
+            print "U 'avin a giggle m8? Horizontal and vertical size of 0? Get rekt scrub"
+        elif window_size_h_res == 0 and window_size_v_res != 0:
+            window_size_h_res = float(aspect_ratio[0])/float(aspect_ratio[1]) * window_size_v_res
+            break
+        elif window_size_h_res != 0 and window_size_v_res == 0:
+            window_size_v_res = float(aspect_ratio[1])/float(aspect_ratio[0]) * window_size_h_res
+            break
         else:
-            if window_size_v >= 900:
+            if window_size_h_res/window_size_v_res != float(aspect_ratio[0])/float(aspect_ratio[1]):
+                print "U 'avin a giggle m8? Horizontal and vertical size not matching aspect ratio? Get rekt scrub"
+            elif window_size_h_res/window_size_v_res == float(aspect_ratio[0])/float(aspect_ratio[1]):
                 break
             else:
                 print "U 'avin a giggle m80? Gimme vertical size at least 900"
@@ -48,9 +86,8 @@ elif bypass:
     window_size_v = configs['options']['resolution'][1]
 
 # offsets for gui items to remain at the same relative place regardless of screen size
-offset_h = (window_size_h-1440)/2
-offset_v = (window_size_v-900)
-is_online = False
+offset_h = (window_size_h_res-1440)/2
+offset_v = (window_size_v_res-900)
 
 # Set up the window
 screen = pygame.display.set_mode((window_size_h, window_size_v), 0, 32)
@@ -58,8 +95,10 @@ pygame.display.toggle_fullscreen
 classes.screen = screen
 guiclasses.screen = screen
 
-classes.window_size_h = window_size_h
-classes.window_size_v = window_size_v
+classes.window_size_h_ren = window_size_h_ren
+classes.window_size_v_ren = window_size_v_ren
+classes.window_size_h_res = window_size_h_res
+classes.window_size_v_res = window_size_v_res
 
 BLACK = (0, 0, 0)
 
@@ -98,6 +137,7 @@ guiclasses.PlayingGUI.components['health_bar'].components['content'].linked_enti
 # run the game loop
 while True:
     screen.fill(BLACK)
+    classes.screen_render.fill(BLACK)
     if state == State.paused:
         # don't move anything
         pass

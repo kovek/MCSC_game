@@ -592,7 +592,6 @@ class PauseMenu(Menu):
             # Go back the menu tree.
             return
 
-
 # This is the star class for various stars
 class Star(object):
     def __init__(self):
@@ -607,4 +606,3 @@ class Shadow(object):
         self.owner = owner
         self.height = owner.sprite_size[0]/4
         ShadowManager.components.add(self)
-
