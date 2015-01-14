@@ -108,6 +108,18 @@ mana_bar = guiclasses.GUIItem('mana')
 sun = classes.Star()
 
 bosses = []
+import random
+boss = classes.RagdollBoss()
+for i in xrange(10):
+    bosses.append(classes.RagdollBoss())
+    x = (random.random()-0.5)*100.0
+    y = random.random()*100.0
+    z = (random.random()-0.5)*100.0
+    bosses[i].components['physics'].position = [x, y, z]
+
+# Use this to know what state the game is at
+State = Enum('State', 'playing menu paused')
+state = State.playing
 
 guiclasses.PlayingGUI.components['health_bar'].components['content'].linked_entity = player
 
