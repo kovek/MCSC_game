@@ -1,10 +1,11 @@
 Warrior:
-    box_size: [10,10,10]
+    box_size: [20,40,20]
     box_offset: [0,0.5,0]
     offset: [0.5, 1]
     spritesheet_file: '../data/sprites/classes/player_anim.png'
     num_of_animations: 10
     num_of_frames: 10
+    sprite_size: [20,40]
 
 RagdollBoss:
     box_size: [20,20,20]
@@ -13,6 +14,7 @@ RagdollBoss:
     spritesheet_file: '../data/sprites/classes/player_anim.png'
     num_of_animations: 10
     num_of_frames: 10
+    sprite_size: [20,40]
 
 GUI:
   boss_health:
@@ -28,8 +30,8 @@ GUI:
     scale_border: 1
     border_pct: 0.1
   mana:
-    point_to_img: [0.0,1.0]
-    point_to_screen: [0.0,1.0]
+    point_to_img: [1.0,1.0]
+    point_to_screen: [1.0,1.0]
     dimensions: [446, 46]
     background_img: '../data/gui/health_background.png'
     content_img: '../data/gui/mana_bar.png'

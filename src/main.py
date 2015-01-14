@@ -2,11 +2,8 @@ import pygame, sys, os
 from pygame.locals import *
 from enum import Enum
 import classes
-from classes import animation_loop
 import yaml
-import gui_classes
-from gui_classes import GUIItem
-print GUIItem.__class__.__name__
+import guiclasses
 
 configs = yaml.load( file('../local/config.yaml') )
 
@@ -57,6 +54,7 @@ is_online = False
 screen = pygame.display.set_mode((window_size_h, window_size_v), 0, 32)
 pygame.display.toggle_fullscreen
 classes.screen = screen
+guiclasses.screen = screen
 
 # Set up the colors
 BLACK = (0, 0, 0)
@@ -99,9 +97,10 @@ walls = [
 	classes.Wall([0,0,-250], [0,0,1]),
 	classes.Wall([0,0,0], [0,1,0]) ]
 	"""
-health_bar = gui_classes.GUIItem('health')
-mana_bar = gui_classes.GUIItem('mana')
+health_bar = guiclasses.GUIItem('health')
+mana_bar = guiclasses.GUIItem('mana')
 
+"""
 square_position_x = [510+offset_h,580+offset_h,670+offset_h,740+offset_h,810+offset_h,880+offset_h]
 hp_container = classes.GuiStatic('bar_container.png',20+offset_h,830+offset_v)
 mana_container = classes.GuiStatic('bar_container.png',970+offset_h,830+offset_v)
@@ -124,10 +123,11 @@ s1_text = classes.GuiText('S1',670+offset_h,810+offset_v)
 s2_text = classes.GuiText('S2',740+offset_h,810+offset_v)
 s3_text = classes.GuiText('S3',810+offset_h,810+offset_v)
 s4_text = classes.GuiText('S4',880+offset_h,810+offset_v)
-boss = classes.Enemy(100,25)
-sun = classes.Star()
 #player_shadow = classes.Shadow(player,'player',sun)
 #boss_shadow = classes.Shadow(boss,'boss',sun)
+"""
+
+sun = classes.Star()
 
 focus = player
 
@@ -136,7 +136,7 @@ State = Enum('State', 'playing menu paused')
 state = State.playing
 
 # things_on_screen contains everything that must be drawn by pygame.
-things_on_screen = [classes.Battlefield(), classes.RagdollBoss(), player, boss, sun, mana_bar]
+things_on_screen = [classes.Battlefield(), classes.RagdollBoss(), player, sun, mana_bar, health_bar]
 classes.PhysicsEngine.things_on_field = things_on_screen
 
 # run the game loop
