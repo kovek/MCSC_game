@@ -17,22 +17,29 @@ gem_qtty = 0
 gem_1_qtty = 0
 gem_2_qtty = 0
 gem_3_qtty = 0
+keys = {K_1: 'ok'}
 pygame.init()
-keys=pygame.key.get_pressed()
+screen = pygame.display.set_mode((500,500))
+pygame.display.update()
+
 while True:
-    keys=pygame.key.get_pressed()
-    print keys
-    if K_1 in keys:
-        metal_type = 1
-        metal_1_qtty = metal_1_qtty + 1
-        print "metal 1 added, current amount:", metal_1_qtty
-    elif keys[K_2]:
-        metal_type = 2
-        metal_2_qtty = metal_2_qtty + 1
-        print "metal 2 added, current amount:", metal_2_qtty
-    elif keys[K_3]:
-        metal_type = 3
-        metal_3_qtty = metal_3_qtty + 1
+    for event in pygame.event.get():
+        if event.type == KEYDOWN:
+            if event.key in keys:
+                print keys[event.key]
+
+"""if K_1 in keys:
+    metal_type = 1
+    metal_1_qtty = metal_1_qtty + 1
+    print "metal 1 added, current amount:", metal_1_qtty
+elif keys[K_2]:
+    metal_type = 2
+    metal_2_qtty = metal_2_qtty + 1
+    print "metal 2 added, current amount:", metal_2_qtty
+elif keys[K_3]:
+    metal_type = 3
+    metal_3_qtty = metal_3_qtty + 1
+pygame.display.flip()
 if metal_type == 1:
     inv_m1_qtty = inv_m1_qtty - metal_qtty
 elif metal_type == 2:
@@ -79,4 +86,4 @@ dict = {(1,1,1,1) : 'pistol', (1,2,1,1): 'shotgun', (1,3,1,1): 'potato launcher'
 crafting_list = [metal_type, metal_qtty, gem_type, gem_qtty]
 crafting_list = tuple(crafting_list)
 print dict [crafting_list]
-#we can add more possibilities (more metals, more gems, more stuff (rocks? idk) just need to edit the recipes
+#we can add more possibilities (more metals, more gems, more stuff (rocks? idk) just need to edit the recipes"""
