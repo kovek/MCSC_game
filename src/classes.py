@@ -153,6 +153,7 @@ class CollisionsManager(System):
     @classmethod
     def tick(cls):
         list_of_checked_component_pairs = []
+        print ">>>"
         for component in cls.components:
             permutations = []
 
@@ -395,7 +396,7 @@ class Render(object):
     def __init__(self, parent, source):
         self.parent = parent
         self.source = source
-        self.image = pygame.image.load(self.parent.spritesheet_file)
+        self.image = pygame.image.load(os.path.join(*self.parent.spritesheet_file))
         self.which_frame = 0
         self.which_animation = 0
         self.dw = self.image.get_width()

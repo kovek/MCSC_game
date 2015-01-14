@@ -23,7 +23,7 @@ class GUIBackground(object):
             self.parent = parent
             self.image = pygame.transform.scale(
                 pygame.image.load(
-                    file(Resources['GUI'][parent.name]['background_img'])),
+                    file( os.path.join(*Resources['GUI'][parent.name]['background_img']) )),
                 tuple(Resources['GUI'][self.parent.name]['dimensions']) )
 
             self.image = pygame.transform.scale(
@@ -48,7 +48,7 @@ class GUIDynamicContent(object):
             self.parent = parent
             self.image = pygame.transform.scale(
                 pygame.image.load(
-                    file(Resources['GUI'][parent.name]['content_img'] ) ),
+                    file( os.path.join( *Resources['GUI'][parent.name]['content_img'] ) ) ),
                 tuple(Resources['GUI'][self.parent.name]['dimensions']))
             self.image = pygame.transform.scale(
                 self.image,
@@ -79,7 +79,7 @@ class GUIBorder(object):
 	def __init__(self, parent):
             self.parent = parent
             self.image = pygame.image.load(
-                file(Resources['GUI'][parent.name]['border_img']) )
+                file( os.path.join( *Resources['GUI'][parent.name]['border_img']) ) )
 
             gui_resource = Resources['GUI'][self.parent.name]
 
