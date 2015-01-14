@@ -344,6 +344,8 @@ class ControlsManager(System):
             elif key is K_SPACE:
                 if item.parent.components['physics'].velocity[1] is 0:
                     item.parent.components['physics'].velocity[1] = 1
+            elif key is K_q:
+                punch = Punch()
             else:
                 pass
 

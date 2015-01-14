@@ -54,7 +54,7 @@ frustumScale = 1.0 # Gots to be just enough to englobe the whole field
 length_of_field = 500
 width_of_field = 200
 elevation_of_camera = 100
-push_back_of_camera_from_field = 10
+push_back_of_camera_from_field = 100
 push_back_of_camera = length_of_field/2.0 + push_back_of_camera_from_field
 angle_of_camera = math.atan( float(elevation_of_camera)/float(push_back_of_camera))
 

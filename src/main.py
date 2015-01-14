@@ -86,8 +86,8 @@ elif bypass:
     window_size_v = configs['options']['resolution'][1]
 
 # offsets for gui items to remain at the same relative place regardless of screen size
-offset_h = (window_size_h_res-1440)/2
-offset_v = (window_size_v_res-900)
+offset_h = (window_size_h-1440)/2
+offset_v = (window_size_v-900)
 
 # Set up the window
 screen = pygame.display.set_mode((window_size_h, window_size_v), 0, 32)
@@ -95,24 +95,7 @@ pygame.display.toggle_fullscreen
 classes.screen = screen
 guiclasses.screen = screen
 
-classes.window_size_h_ren = window_size_h_ren
-classes.window_size_v_ren = window_size_v_ren
-classes.window_size_h_res = window_size_h_res
-classes.window_size_v_res = window_size_v_res
-
 BLACK = (0, 0, 0)
-
-# Values for the GUI
-max_health_value = 750.0
-max_mana_value = 500.0
-max_enemy_hp_value = 15000.0
-health_value = 750.0
-mana_value = 500.0
-enemy_hp_value = 15000.0
-health_percentage = health_value/max_health_value
-mana_percentage = mana_value/max_mana_value
-enemy_hp_percentage = enemy_hp_value/max_enemy_hp_value
-
 
 # initialization of every element of the game (player, enemies, gui items)
 ###this should be moved to some other class eventually
@@ -124,11 +107,7 @@ mana_bar = guiclasses.GUIItem('mana')
 
 sun = classes.Star()
 
-boss = classes.RagdollBoss()
-
-# Use this to know what state the game is at
-State = Enum('State', 'playing menu paused')
-state = State.playing
+bosses = []
 
 guiclasses.PlayingGUI.components['health_bar'].components['content'].linked_entity = player
 
@@ -137,7 +116,6 @@ guiclasses.PlayingGUI.components['health_bar'].components['content'].linked_enti
 # run the game loop
 while True:
     screen.fill(BLACK)
-    classes.screen_render.fill(BLACK)
     if state == State.paused:
         # don't move anything
         pass
