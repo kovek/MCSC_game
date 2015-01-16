@@ -21,6 +21,7 @@ item_type = [0,0,0,0]
 item_qtty = [0,0,0,0]
 keys_metal = {K_1,K_2,K_3,K_4,K_5,K_6}
 keys_gems = {K_q,K_w,K_e,K_r,K_t,K_y}
+keys_end = {K_SPACE, K_RETURN, K_ESCAPE, K_p}
 m_tuple = (0,0)
 g_tuple = (0,0)
 def potater (index):
@@ -34,12 +35,12 @@ def potater (index):
                     else:
                         item_qtty[index] = 1
                     print keys[event.key], "added, total amount:", item_qtty[index]
-                elif event.key in {K_4,K_5,K_6,K_q,K_w,K_e}:
-                    metal_type[index] = type_list [event.key]
+                elif event.key in {K_4,K_5,K_6,K_r,K_t,K_y}:
+                    item_type[index] = type_list [event.key]
                     item_qtty[index] -= 1
                     if item_qtty[index] < 0:
                         item_qtty[index] = 0
-                    if item[index] == random_val[index]:
+                    if item_type[index] == random_val[index]:
                         pass
                     else:
                         item_qtty[index] = 0
@@ -51,8 +52,12 @@ while True:
                 metal_tuple = potater(0)
             elif event.key in keys_gems:
                 gem_tuple = potater(1)
+            elif event.key in keys_end:
+                break
             else:
                 pass
+print "crafting finished"
+
 """if K_1 in keys:
     metal_type = 1
     metal_1_qtty = metal_1_qtty + 1
