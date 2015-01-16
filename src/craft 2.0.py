@@ -24,7 +24,7 @@ keys_gems = [K_q,K_w,K_e,K_r,K_t,K_y]
 keys_end = [K_SPACE, K_RETURN, K_ESCAPE, K_p]
 m_tuple = (0,0)
 g_tuple = (0,0)
-foo = 1
+foo = True
 def potater (index):
     if event.key in keys:
                 random_val[index] = item_type[index]
@@ -54,7 +54,7 @@ while foo:
             elif event.key in keys_gems:
                 gem_tuple = potater(1)
             elif event.key in keys_end:
-                foo = 0
+                foo = False
             else:
                 pass
 print "crafting finished"
