@@ -19,11 +19,12 @@ screen = pygame.display.set_mode((500,500))
 pygame.display.update()
 item_type = [0,0,0,0]
 item_qtty = [0,0,0,0]
-keys_metal = {K_1,K_2,K_3,K_4,K_5,K_6}
-keys_gems = {K_q,K_w,K_e,K_r,K_t,K_y}
-keys_end = {K_SPACE, K_RETURN, K_ESCAPE, K_p}
+keys_metal = [K_1,K_2,K_3,K_4,K_5,K_6]
+keys_gems = [K_q,K_w,K_e,K_r,K_t,K_y]
+keys_end = [K_SPACE, K_RETURN, K_ESCAPE, K_p]
 m_tuple = (0,0)
 g_tuple = (0,0)
+foo = 1
 def potater (index):
     if event.key in keys:
                 random_val[index] = item_type[index]
@@ -45,7 +46,7 @@ def potater (index):
                     else:
                         item_qtty[index] = 0
                     print keys[event.key], "removed, total amount", item_qtty[index]
-while True:
+while foo:
     for event in pygame.event.get():
         if event.type == KEYDOWN:
             if event.key in keys_metal:
@@ -53,7 +54,7 @@ while True:
             elif event.key in keys_gems:
                 gem_tuple = potater(1)
             elif event.key in keys_end:
-                break
+                foo = 0
             else:
                 pass
 print "crafting finished"
