@@ -99,6 +99,7 @@ class RenderManager(System):
 
         height = int(-(head_point[1] - feet_point[1]))
         width = int(-(left[0] - right[0]))
+        item.scaled_size = [width, height]
 
         cropped = pygame.Surface( frame_dimensions )
         cropped.blit(item.image, (0,0), (item.which_frame*frame_dimensions[0], item.which_animation*frame_dimensions[1], frame_dimensions[0], frame_dimensions[1] ))
@@ -252,6 +253,19 @@ class ShadowManager(System):
                 shadow.shadow_foot = shadow.position[:]
                 shadow.shadow_head = shadow.position[:]
 
+                if 0 <= angle <= 90:
+                    shadow.shadow_foot[0] += (shadow.owner.components['render'].scaled_size[0])/2
+                    shadow.shadow_head[0] -= (shadow.owner.components['render'].scaled_size[0])/2
+
+                elif 90 <= angle <= 180:
+                    shadow.shadow_foot[0] -= (shadow.owner.components['render'].scaled_size[0])/2
+                    shadow.shadow_head[0] += (shadow.owner.components['render'].scaled_size[0])/2
+
+                #shadow.shadow_foot[0] += shadow.owner.components['render'].width/2
+                #shadow.shadow_head[0] += shadow.owner.components['render'].width/2
+                #shadow.shadow_head[0] -= ratio * shadow.components['render'].height
+                
+
                 shadow.shadow_foot[0] -= ratio * shadow.owner.components['physics'].position[1]
                 shadow.shadow_head[0] -= ratio * (shadow.owner.components['physics'].position[1] + shadow.owner.sprite_size[1])
 
@@ -396,6 +410,7 @@ class Render(object):
     def __init__(self, parent, source):
         self.parent = parent
         self.source = source
+        self.scaled_size = self.parent.sprite_size
         self.image = pygame.image.load(os.path.join(*self.parent.spritesheet_file))
         self.which_frame = 0
         self.which_animation = 0
