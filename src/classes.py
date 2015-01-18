@@ -40,16 +40,16 @@ JUMP_SPEED = 1.5
 DAY_TIME = 360000
 
 character_sprites = {
-	(-1,0,1):	1,
-	(1,0,1):	2,
-	(-1,0,-1):	3,
-	(1,0,-1):	4,
-	(0,0,1):	5,
-	(0,0,-1):	6,
-	(-1,0,0):	7,
-	(1,0,0):	8,
-	(0,0,0):	9,
-	(0,1,0):	0,
+	(-1,0,1):	0,
+	(1,0,1):	1,
+	(-1,0,-1):	2,
+	(1,0,-1):	3,
+	(0,0,1):	4,
+	(0,0,-1):	5,
+	(-1,0,0):	6,
+	(1,0,0):	7,
+	(0,0,0):	8,
+	(0,1,0):	9,
 }
 
 class System(object):
@@ -256,10 +256,12 @@ class ShadowManager(System):
                 if 0 <= angle <= 90:
                     shadow.shadow_foot[0] += (shadow.owner.components['render'].scaled_size[0])/2
                     shadow.shadow_head[0] -= (shadow.owner.components['render'].scaled_size[0])/2
+                    print shadow.owner.components['physics'].position, shadow.shadow_foot[0], shadow.shadow_head[0]
 
                 elif 90 <= angle <= 180:
                     shadow.shadow_foot[0] -= (shadow.owner.components['render'].scaled_size[0])/2
                     shadow.shadow_head[0] += (shadow.owner.components['render'].scaled_size[0])/2
+                    print shadow.owner.components['physics'].position, shadow.shadow_foot[0], shadow.shadow_head[0]
 
                 #shadow.shadow_foot[0] += shadow.owner.components['render'].width/2
                 #shadow.shadow_head[0] += shadow.owner.components['render'].width/2
