@@ -1,8 +1,9 @@
 import pygame, sys, os
 from pygame.locals import *
 
-inv_list = [ 'Copper', 'Copper', 'Copper', 'Aluminum', 'Aluminum', 'Uranium', 'Ruby', 'Ruby', 'Emerald', 'Diamond']
 money = 500
+shopping = True
+inv_list = [ 'Copper', 'Copper', 'Copper', 'Aluminum', 'Aluminum', 'Uranium', 'Ruby', 'Ruby', 'Emerald', 'Diamond']
 store_list = [ 'Copper', 'Copper', 'Copper', 'Aluminum', 'Aluminum', 'Uranium', 'Ruby', 'Ruby', 'Emerald', 'Diamond']
 inv_dict = {}
 store_dict = {}
@@ -21,6 +22,7 @@ def fill_dict(list,dict):
             dict[x] += 1
 fill_dict(inv_list, inv_dict)
 fill_dict(store_list, store_dict)
+print "Money remaining: ", money
 print "Your items: ", inv_dict
 print "Store items: ", store_dict
 prices = {
@@ -35,12 +37,13 @@ pygame.init()
 screen = pygame.display.set_mode((500,500))
 pygame.display.update()
 
-def buy (item,money):
+def buy (item):
+    global money
     if item not in store_dict:
         print "Cannot buy fggt"
     else:
         if store_dict[item] == 0 or prices[item]>money:
-            print "Cannot buy fggt"
+            print "Cannot buy fag"
         else:
             store_dict[item] -= 1
             money -= prices[item]
@@ -49,16 +52,18 @@ def buy (item,money):
             else:
                 inv_dict[item] += 1
             print "Bought: ", item
+            print "Money remaining: ", money
             print "Your items: ", inv_dict
             print "Store items: ", store_dict
             
 
-def sell(item,money):
+def sell(item):
+    global money
     if item not in inv_dict:
-        print "Cannot buy fggt"
+        print "Cannot sell fggt"
     else:
         if inv_dict[item] == 0:
-            print "Cannot buy fggt"
+            print "Cannot sell fag"
         else:
             inv_dict[item] -= 1
             money += prices[item]
@@ -67,21 +72,25 @@ def sell(item,money):
             else:
                 store_dict[item] += 1
             print "Sold: ", item
+            print "Money remaining: ", money
             print "Your items: ", inv_dict
             print "Store items: ", store_dict
                 
 
-while True:
+while shopping:
     for event in pygame.event.get():
         if event.type == KEYDOWN:
             if event.key in item_keys:
-                if KMOD_SHIFT:
+                if pygame.key.get_mods() & KMOD_SHIFT == 1:
                     sell(item_keys[event.key])
-                elif not KMOD_SHIFT:
+                elif pygame.key.get_mods() & KMOD_SHIFT == 0:
                     buy(item_keys[event.key])
-            elif event.key == K_ENTER:
-                break
+            elif event.key == K_RETURN:
+                shopping = False
+            else:
+                pass
 print "Finished shopping!"
+print "Money remaining: ", money
 print "Your items: ", inv_dict
 print "Store items: ", store_dict
             
