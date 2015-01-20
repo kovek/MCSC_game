@@ -28,16 +28,16 @@ def potater (index):
     if event.key in keys:
                 random_val[index] = item_type[index]
                 if event.key in [K_1,K_2,K_3, K_q,K_w,K_e]:
-                    if item_type[index] == random_val[index]:
-                        pass
-                    else:
-                        item_qtty[index] = 0
                     if my_dict[keys[event.key]] == 0:
                         print 'U suk no moar'
                     else:
                         item_type[index] = type_list[event.key]
                         item_qtty[index] += 1
-                        my_dict[keys[event.key]] -= 1   
+                        my_dict[keys[event.key]] -= 1
+                    if item_type[index] == random_val[index]:
+                        pass
+                    else:
+                        item_qtty[index] = 1
                     print keys[event.key], "added, total amount:", item_qtty[index]
                     print 'amount left:', my_dict[keys[event.key]]
                 elif event.key in [K_4,K_5,K_6,K_r,K_t,K_y]:
