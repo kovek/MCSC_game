@@ -93,7 +93,7 @@ offset_v = (window_size_v-900)
 screen = pygame.display.set_mode((window_size_h, window_size_v), 0, 32)
 pygame.display.toggle_fullscreen
 classes.screen = screen
-#guiclasses.screen = screen
+guiclasses.screen = screen
 
 BLACK = (0, 0, 0)
 
