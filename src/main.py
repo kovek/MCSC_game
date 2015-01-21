@@ -3,7 +3,7 @@ from pygame.locals import *
 from enum import Enum
 import classes
 import yaml
-#import guiclasses
+import guiclasses
 
 configs = yaml.load( file('../local/config.yaml') )
 
@@ -93,7 +93,7 @@ offset_v = (window_size_v-900)
 screen = pygame.display.set_mode((window_size_h, window_size_v), 0, 32)
 pygame.display.toggle_fullscreen
 classes.screen = screen
-#guiclasses.screen = screen
+guiclasses.screen = screen
 
 BLACK = (0, 0, 0)
 
@@ -102,8 +102,8 @@ BLACK = (0, 0, 0)
 player = classes.Warrior()
 player.components['controls'].pygame = pygame
 
-#health_bar = guiclasses.GUIItem('health')
-#mana_bar = guiclasses.GUIItem('mana')
+health_bar = guiclasses.GUIItem('health')
+mana_bar = guiclasses.GUIItem('mana')
 
 sun = classes.Star()
 
@@ -122,7 +122,7 @@ for i in xrange(50):
 State = Enum('State', 'playing menu paused')
 state = State.playing
 
-#guiclasses.PlayingGUI.components['health_bar'].components['content'].linked_entity = player
+guiclasses.PlayingGUI.components['health_bar'].components['content'].linked_entity = player
 
 # things_on_screen contains everything that must be drawn by pygame.
 
@@ -148,6 +148,6 @@ while True:
 
         classes.CollisionsManager.tick()
 
-        #guiclasses.PlayingGUI.tick()
+        guiclasses.PlayingGUI.tick()
 
     pygame.display.update()

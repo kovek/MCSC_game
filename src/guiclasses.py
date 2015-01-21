@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from classes import Entity
 import pygame, sys, os
 from classes import Resources, resolution_scale, options_scale, resolution, System
+screen = None
 
 class GUIManager(System):
     components = set([])
@@ -18,12 +19,13 @@ class GUIContainer(Entity):
 		}
 
 
+
 class GUIBackground(object):
 	def __init__(self, parent):
             self.parent = parent
             self.image = pygame.transform.scale(
                 pygame.image.load(
-                    file( os.path.join(*Resources['GUI'][parent.name]['background_img']) )),
+                     os.path.join(*Resources['GUI'][parent.name]['background_img']) ),
                 tuple(Resources['GUI'][self.parent.name]['dimensions']) )
 
             self.image = pygame.transform.scale(
@@ -48,7 +50,7 @@ class GUIDynamicContent(object):
             self.parent = parent
             self.image = pygame.transform.scale(
                 pygame.image.load(
-                    file( os.path.join( *Resources['GUI'][parent.name]['content_img'] ) ) ),
+                     os.path.join( *Resources['GUI'][parent.name]['content_img']  ) ),
                 tuple(Resources['GUI'][self.parent.name]['dimensions']))
             self.image = pygame.transform.scale(
                 self.image,
@@ -79,7 +81,7 @@ class GUIBorder(object):
 	def __init__(self, parent):
             self.parent = parent
             self.image = pygame.image.load(
-                file( os.path.join( *Resources['GUI'][parent.name]['border_img']) ) )
+                 os.path.join( *Resources['GUI'][parent.name]['border_img'])  )
 
             gui_resource = Resources['GUI'][self.parent.name]
 

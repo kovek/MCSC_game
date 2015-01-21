@@ -41,16 +41,16 @@ JUMP_SPEED = 1.5
 DAY_TIME = 360000
 
 character_sprites = {
-	(-1,0,1):	1,
-	(1,0,1):	2,
-	(-1,0,-1):	3,
-	(1,0,-1):	4,
-	(0,0,1):	5,
-	(0,0,-1):	6,
-	(-1,0,0):	7,
-	(1,0,0):	8,
-	(0,0,0):	9,
-	(0,1,0):	0,
+	(-1,0,1):	0,
+	(1,0,1):	1,
+	(-1,0,-1):	2,
+	(1,0,-1):	3,
+	(0,0,1):	4,
+	(0,0,-1):	5,
+	(-1,0,0):	6,
+	(1,0,0):	7,
+	(0,0,0):	8,
+	(0,1,0):	9,
 }
 
 class System(object):
@@ -225,17 +225,13 @@ class ShadowManager(System):
                 shadow.shadow_foot = shadow.position[:]
                 shadow.shadow_head = shadow.position[:]
 
-                if 0 <= angle <= 90:
-                    shadow.shadow_foot[0] += (shadow.owner.components['render'].scaled_size[0])/2
-                    shadow.shadow_head[0] -= (shadow.owner.components['render'].scaled_size[0])/2
+                if 0 <= angle < 90:
+                    shadow.shadow_foot[0] += (shadow.owner.sprite_size[0])/2.0
+                    shadow.shadow_head[0] -= (shadow.owner.sprite_size[0])/2.0
 
                 elif 90 <= angle <= 180:
-                    shadow.shadow_foot[0] -= (shadow.owner.components['render'].scaled_size[0])/2
-                    shadow.shadow_head[0] += (shadow.owner.components['render'].scaled_size[0])/2
-
-                #shadow.shadow_foot[0] += shadow.owner.components['render'].width/2
-                #shadow.shadow_head[0] += shadow.owner.components['render'].width/2
-                #shadow.shadow_head[0] -= ratio * shadow.components['render'].height
+                    shadow.shadow_foot[0] -= (shadow.owner.sprite_size[0])/2.0
+                    shadow.shadow_head[0] += (shadow.owner.sprite_size[0])/2.0
 
 
                 shadow.shadow_foot[0] -= ratio * shadow.owner.components['physics'].position[1]
@@ -252,7 +248,8 @@ class ShadowManager(System):
                 if 177 < angle <= 180:
                     angle = 177.0
 
-                shadow.size = (abs(int(shadow.shadow_head[0]-shadow.shadow_foot[0])), shadow.shadow_image.get_height())
+                width = abs(int(pos_to_2d( shadow.shadow_head )[0] - pos_to_2d( shadow.shadow_foot )[0]))
+                shadow.size = (width, shadow.shadow_image.get_height())
                 if angle > 180.0:
                     shadow.size = (0,0)
 
