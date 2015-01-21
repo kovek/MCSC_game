@@ -1,8 +1,10 @@
 import pygame, sys, os
 from pygame.locals import *
+import yaml
+yaml_is_sexy = yaml.load(open('../data/craftstore.yaml','r'))
+display_res = (1920,1080)
 
 money = 500
-shopping = True
 inv_list = [ 'Copper', 'Copper', 'Copper', 'Aluminum', 'Aluminum', 'Uranium', 'Ruby', 'Ruby', 'Emerald', 'Diamond']
 store_list = [ 'Copper', 'Copper', 'Copper', 'Aluminum', 'Aluminum', 'Uranium', 'Ruby', 'Ruby', 'Emerald', 'Diamond']
 inv_dict = {}
@@ -33,9 +35,25 @@ prices = {
     'Emerald': 250,
     'Diamond': 1000
     }
+shopping = True
+
 pygame.init()
-screen = pygame.display.set_mode((500,500))
-pygame.display.update()
+screen = pygame.display.set_mode(display_res)
+screen_render = pygame.Surface((3840,2160))
+store_square = pygame.image.load(os.path.join(*yaml_is_sexy['store']['smallsquares']['img']))
+inv_square = pygame.image.load(os.path.join(*yaml_is_sexy['craftstore']['smallsquares']['img']))
+store_button = pygame.image.load(os.path.join(*yaml_is_sexy['store']['buttons']['img']))
+for i in yaml_is_sexy['craftstore']['smallsquares']['positions']:
+    for j in range(len(yaml_is_sexy['craftstore']['smallsquares']['positions'][i])):
+        screen_render.blit(inv_square, tuple(yaml_is_sexy['craftstore']['smallsquares']['positions'][i][j]))
+for i in yaml_is_sexy['store']['smallsquares']['positions']:
+    for j in range(len(yaml_is_sexy['store']['smallsquares']['positions'][i])):
+        screen_render.blit(inv_square, tuple(yaml_is_sexy['store']['smallsquares']['positions'][i][j]))
+for i in range(len(yaml_is_sexy['store']['buttons']['positions'])):
+    screen_render.blit(store_button, tuple(yaml_is_sexy['store']['buttons']['positions'][i]))
+screen_final = pygame.transform.smoothscale(screen_render, display_res)
+screen.blit(screen_final,(0,0))
+pygame.display.flip()
 
 def buy (item):
     global money

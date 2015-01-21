@@ -1,7 +1,10 @@
 #crafting system
 import pygame, sys, os
 from pygame.locals import *
-display_res = (1000,600)
+import yaml
+yaml_is_sexy = yaml.load(open('../data/craftstore.yaml','r'))
+display_res = (1920,1080)
+
 type_list = {K_1: 1, K_2 : 2, K_3 : 3, K_4 :1, K_5 : 2, K_6 : 3, K_q : 1, K_w :2, K_e : 3, K_r : 1, K_t : 2, K_y: 3}
 inv_list = [ 'Copper', 'Copper', 'Copper', 'Aluminum', 'Aluminum', 'Uranium', 'Ruby', 'Ruby', 'Emerald', 'Diamond']
 my_dict = {}
@@ -12,19 +15,30 @@ for material in inv_list:
         my_dict[material] += 1
 print my_dict
 keys = {K_1: 'Copper', K_2: "Aluminum", K_3: "Uranium", K_4: "Copper", K_5:"Aluminum", K_6:"Uranium", K_q: "Ruby", K_w: "Emerald", K_e : "Diamond", K_r : "Ruby", K_t : "Emerald", K_y : "Diamond"}
-pygame.init()
-screen_render = pygame.Surface((3840,2160))
-screen_render.fill((255,0,0))
-screen_final = pygame.transform.smoothscale(screen_render, display_res)
-screen = pygame.display.set_mode(display_res)
-screen.blit(screen_final,(0,0))
-pygame.display.update()
 item_type = [0,0,0,0,0]
 item_qtty = [0,0,0,0,0]
 keys_metal = [K_1,K_2,K_3,K_4,K_5,K_6]
 keys_gems = [K_q,K_w,K_e,K_r,K_t,K_y]
 keys_end = [K_RETURN]
-foo = True
+crafting = True
+
+pygame.init()
+screen = pygame.display.set_mode(display_res)
+screen_render = pygame.Surface((3840,2160))
+craft_square = pygame.image.load(os.path.join(*yaml_is_sexy['craft']['largesquares']['img']))
+inv_square = pygame.image.load(os.path.join(*yaml_is_sexy['craftstore']['smallsquares']['img']))
+craft_button = pygame.image.load(os.path.join(*yaml_is_sexy['craft']['buttons']['img']))
+for i in range(len(yaml_is_sexy['craft']['largesquares']['positions'])):
+    screen_render.blit(craft_square, tuple(yaml_is_sexy['craft']['largesquares']['positions'][i]))
+for i in yaml_is_sexy['craftstore']['smallsquares']['positions']:
+    for j in range(len(yaml_is_sexy['craftstore']['smallsquares']['positions'][i])):
+        screen_render.blit(inv_square, tuple(yaml_is_sexy['craftstore']['smallsquares']['positions'][i][j]))
+print tuple(yaml_is_sexy['craft']['largesquares']['positions'])
+screen_render.blit(craft_button, tuple(yaml_is_sexy['craft']['buttons']['positions']))
+screen_final = pygame.transform.smoothscale(screen_render, display_res)
+screen.blit(screen_final,(0,0))
+pygame.display.flip()
+
 def potater (index):
                 if event.key in keys:
                     if event.key in [K_1,K_2,K_3, K_q,K_w,K_e]:
@@ -74,7 +88,7 @@ def potater (index):
                                 print 'amount left:', my_dict[keys[event.key]]
                 return (item_type[index],item_qtty[index])
                     
-while foo:
+while crafting:
     for event in pygame.event.get():
         if event.type == KEYDOWN:
             if event.key in keys_metal:
@@ -83,7 +97,7 @@ while foo:
                 gem_tuple = potater(1)
             elif event.key in keys_end:
                 print 'crafting finished, result:'
-                foo = False
+                crafting = False
             else:
                 pass
 #En bas: tree prototype
