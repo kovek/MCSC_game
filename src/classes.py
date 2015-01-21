@@ -157,38 +157,10 @@ class CollisionsManager(System):
         list_of_checked_component_pairs = []
 
         for component in cls.components:
-            item_position = component.parent.components['physics'].position
-            offset = component.parent.box_offset
-            box_size = component.parent.box_size
-            for i in xrange(len(cls.permutations)):
-                corner = cls.permutations[i]
-                component.points[i][0] = item_position[0] + 1/2.0 * (corner[0]+offset[0]*2.0) * box_size[0]
-                component.points[i][0] = item_position[1] + 1/2.0 * (corner[1]+offset[1]*2.0) * box_size[1]
-                component.points[i][0] = item_position[2] + 1/2.0 * (corner[2]+offset[2]*2.0) * box_size[2]
-
-
-        for component in cls.components:
-
-            permutations = []
-
-            bounds = component.parent.box_size
-            offset = component.parent.box_offset
             position = component.parent.components['physics'].position
+            offset = component.parent.box_offset
+            bounds = component.parent.box_size
 
-            """
-            for permut in cls.permutations:
-                permutations.append([
-                    (permut[0]+offset[0]*2)*bounds[0]/2.0+position[0],
-                    (permut[1]+offset[1]*2)*bounds[1]/2.0+position[1],
-                    (permut[2]+offset[2]*2)*bounds[2]/2.0+position[2]] )
-
-            lines = [(0,5), (0,6), (4,6), (4,5), (0,2), (6,3), (5,7), (4,1), (3,1), (3,2), (7,2), (7,1)]
-            for line in lines:
-                pygame.draw.line(screen, (255,0,0), pos_to_2d(permutations[line[0]]), pos_to_2d(permutations[line[1]]))
-            """
-
-            # We should not compute this for every tick. We should somehow fit that back into Resources so
-            # that it could be used later.
             component.x_bounds[0] = position[0] - bounds[0]/2.0 + offset[0] * bounds[0]
             component.x_bounds[1] = position[0] + bounds[0]/2.0 + offset[0] * bounds[0]
             component.y_bounds[0] = position[1] - bounds[1]/2.0 + offset[1] * bounds[1]
@@ -196,6 +168,16 @@ class CollisionsManager(System):
             component.z_bounds[0] = position[2] - bounds[2]/2.0 + offset[2] * bounds[2]
             component.z_bounds[1] = position[2] + bounds[2]/2.0 + offset[2] * bounds[2]
 
+
+        for component in cls.components:
+            permutations = []
+
+            bounds = component.parent.box_size
+            offset = component.parent.box_offset
+            position = component.parent.components['physics'].position
+
+            # We should not compute this for every tick. We should somehow fit that back into Resources so
+            # that it could be used later.
             list_of_colliding_with_component = []
 
             for item in cls.components:
@@ -205,69 +187,18 @@ class CollisionsManager(System):
                 if 'physics' not in item.parent.components:
                     continue
 
-                #the_pair = set([component, item])
-                """
-                try:
-                    index = list_of_checked_component_pairs.index(the_pair)
-                except Exception as e:
-                    index = -1
-                    pass
-                if index != -1:
-                    #list_of_checked_component_pairs.pop(index)
-                    continue
-                else:
-                    list_of_checked_component_pairs.append(the_pair)
-                """
-                """
-                try:
-                    index = list_of_checked_component_pairs.index(item,component)
-                except Exception as e:
-                    index = -1
-                if index != -1:
-                    list_of_checked_component_pairs.pop(index)
-                    continue
-                else:
-                    list_of_checked_component_pairs.append((component, item))
-                """
-
-
-
-                box_size = item.parent.box_size
-
-                # If we don't use this, there will be a collision for
-                # every point inside the bounds
-                stop_comparing_points = False
-
-
-
-
-                for point in item.points:
-                    """
-                    print point
-                    print component.x_bounds
-                    print component.y_bounds
-                    print component.z_bounds
-                    """
-                    if stop_comparing_points: break
-                    if component.x_bounds[0] <= point[0] <= component.x_bounds[1]:
-                        """
-                        if item.parent.name == "Warrior" or component.parent.name == "Warrior":
-                            pdb.set_trace()
-                        """
-                        if component.y_bounds[0] <= point[1] <= component.y_bounds[1]:
-                            if component.z_bounds[0] <= point[2] <= component.z_bounds[1]:
-                                stop_comparing_points = True
-                                list_of_colliding_with_component.append(item)
-
-
+                if component.x_bounds[0] <= item.x_bounds[0] <= component.x_bounds[1]\
+                or component.x_bounds[0] <= item.x_bounds[1] <= component.x_bounds[1]:
+                    if component.y_bounds[0] <= item.y_bounds[0] <= component.y_bounds[1]\
+                    or component.y_bounds[0] <= item.y_bounds[1] <= component.y_bounds[1]:
+                        if component.z_bounds[0] <= item.z_bounds[0] <= component.z_bounds[1]\
+                        or component.z_bounds[0] <= item.z_bounds[1] <= component.z_bounds[1]:
+                            list_of_colliding_with_component.append(item)
 
             for item in list_of_colliding_with_component:
                 fn = CollisionsPossible.collision(component.parent.name, item.parent.name)
                 if type(fn) is not type(None):
-                    if not fn[1]:
-                        fn[0](component.parent, item.parent)
-                    else:
-                        fn[0](item.parent, component.parent)
+                    fn(component.parent, item.parent)
 
 
 
@@ -499,9 +430,7 @@ class CollisionsPossibleClass(object):
             second_key = str(two) + '_with_' + str(one)
 
             if key in dir(self):
-                return (self[key], False)
-            if second_key in dir(self):
-                return (self[second_key], True)
+                return self[key]
 
 	def Tree_with_Player(self, tree, player):
             print 'tree gives shadow to player'
@@ -525,6 +454,9 @@ class CollisionsPossibleClass(object):
             player.components['stats'].health -= 0.1
             if player.components['stats'].health <= 0.0:
                 player.components['stats'].health = 0.0
+
+	def RagdollBoss_with_RagdollBoss(self, boss, player):
+            print "Two ragdolls touch..."
 
 
 CollisionsPossible = CollisionsPossibleClass()

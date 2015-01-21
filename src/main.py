@@ -111,7 +111,7 @@ bosses = []
 import random
 boss = classes.RagdollBoss()
 #boss.components['physics'].position = [0,0,0]
-for i in xrange(40):
+for i in xrange(50):
     bosses.append(classes.RagdollBoss())
     x = (random.random()-0.5)*200.0
     y = random.random()*200.0
