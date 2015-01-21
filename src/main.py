@@ -110,11 +110,12 @@ sun = classes.Star()
 bosses = []
 import random
 boss = classes.RagdollBoss()
-for i in xrange(10):
+#boss.components['physics'].position = [0,0,0]
+for i in xrange(40):
     bosses.append(classes.RagdollBoss())
-    x = (random.random()-0.5)*100.0
-    y = random.random()*100.0
-    z = (random.random()-0.5)*100.0
+    x = (random.random()-0.5)*200.0
+    y = random.random()*200.0
+    z = (random.random()-0.5)*200.0
     bosses[i].components['physics'].position = [x, y, z]
 
 # Use this to know what state the game is at
@@ -126,12 +127,14 @@ state = State.playing
 # things_on_screen contains everything that must be drawn by pygame.
 
 # run the game loop
+ticks_passed = 0
 while True:
     screen.fill(BLACK)
     if state == State.paused:
         # don't move anything
         pass
     else:
+        print "tick"
         classes.PhysicsManager.tick()
         classes.ControlsManager.tick()
         classes.StarManager.tick()
@@ -141,7 +144,7 @@ while True:
         classes.ShadowManager.tick()
         classes.RenderManager.tick()
 
-        
+
 
         classes.CollisionsManager.tick()
 
