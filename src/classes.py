@@ -8,7 +8,7 @@ import numpy
 import math
 import random
 import yaml
-import copy
+from copy import copy
 import pdb
 import bench
 
@@ -19,12 +19,6 @@ random.seed()
 screen = None
 COMIC_SANS = os.path.join('..','data', 'comic.ttf')
 myfont = pygame.font.Font(COMIC_SANS, 15)
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-PI = math.pi
 
 configs = yaml.load( file('../local/config.yaml') )
 resolution = configs['options']['resolution']
@@ -41,30 +35,63 @@ JUMP_SPEED = 1.5
 DAY_TIME = 360000
 
 character_sprites = {
-	(-1,0,1):	0,
-	(1,0,1):	1,
-	(-1,0,-1):	2,
-	(1,0,-1):	3,
-	(0,0,1):	4,
-	(0,0,-1):	5,
-	(-1,0,0):	6,
-	(1,0,0):	7,
-	(0,0,0):	8,
-	(0,1,0):	9,
+    (-1,0,1):	0,
+    (1,0,1):	1,
+    (-1,0,-1):	2,
+    (1,0,-1):	3,
+    (0,0,1):	4,
+    (0,0,-1):	5,
+    (-1,0,0):	6,
+    (1,0,0):	7,
+    (0,0,0):	8,
+    (0,1,0):	9,
 }
 
 class System(object):
+    """ I System is a class that will control the logic of the different
+    components in the running game. For example, the main game logic will call
+    tick on CollisionManager, which will then inspect all of the collision boxes
+    in game at that moment and figure out which ones collide with eachother.
+
+    We require tick to be defined because that's how we get a System to run its
+    logic"""
+
     @classmethod
     def tick(cls):
+        # Each System should have a components attribute to then be able to
+        # run some logic on them.
         if 'components' not in dir(cls):
-            raise Exception('The system %s should have a .components attribute' % (str(cls),) )
-        raise Exception('The .tick() method for %s has not been implemented' %(str(cls),))
+            raise Exception('The system %s should have a .components attribute'\
+            % (str(cls),) )
+        raise Exception('The .tick() method for %s has not been implemented'\
+        %(str(cls),))
+
+class Component(object):
+    """ A Component is just a container of information that is connected to a
+    System which takes care of the logic for that component. The great thing is
+    that those components can be plugged in and out of Entities.
+
+    For example, you could have a Collision component in a Ragdoll Entity.
+    The Collision component will also be connected the a collision system.
+    The system will always check if the Collision component intersects with any
+    other collision component in the game. If we want the Ragdoll to stop having
+    a collision box, we just disconnect the Collision component from it and it
+    will now not collide with anything anymore!
+    """
+    def __init__(self):
+        pass
 
 class RenderManager(System):
+    """ This System draws components on screen. Right now, it only focuses on
+    character or boss components. """
+
     components = set([])
 
     @classmethod
     def tick(cls):
+
+        # We order the components so that the objects that are further away do
+        # not appear in front of objects that are closer
         ordered = list(cls.components)
         ordered.sort(
             key = lambda x: x.parent.components['physics'].position[2],
@@ -75,8 +102,12 @@ class RenderManager(System):
 
     @classmethod
     def draw(cls, item):
-        item.which_frame = (pygame.time.get_ticks()//MS_PER_FRAME)%item.parent.num_of_frames
 
+        # Go to the next frame in the animation
+        item.which_frame = (pygame.time.get_ticks()//MS_PER_FRAME)%\
+            item.parent.num_of_frames
+
+        # Check if the character is jumping to give him the jumping animation.
         velocity = item.parent.components['physics'].velocity
         if velocity[1] != 0:
             item.which_animation = character_sprites[ tuple( (0,1,0) ) ]
@@ -86,14 +117,27 @@ class RenderManager(System):
 
         position = item.parent.components['physics'].position
 
+        # An example of the use of the offset is to make the character appear
+        # such that its position is at its feet
         offset = item.parent.offset
+
         num_of_frames = item.parent.num_of_frames
         num_of_animations = item.parent.num_of_animations
 
-        frame_dimensions = (item.image.get_width()/num_of_frames, item.image.get_height()/num_of_animations)
+        # We have big image files that contain spritesheets.
+        # These frame dimensions are the dimensions of one sprite on a
+        # spritesheet
+        frame_dimensions = (
+            item.image.get_width()/num_of_frames,
+            item.image.get_height()/num_of_animations)
 
+        # We're using this to scale the image depending on its depth
         feet_point = pos_to_2d([position[0], 0, position[2]])
-        head_point = pos_to_2d([position[0], item.parent.sprite_size[1], position[2]])
+        head_point = pos_to_2d([
+            position[0],
+            item.parent.sprite_size[1],
+            position[2]])
+
         h = item.parent.sprite_size[0]
         left = pos_to_2d([position[0] - h/2.0, 0.0, position[2]])
         right = pos_to_2d([position[0] + h/2.0, 0.0, position[2]])
@@ -102,19 +146,33 @@ class RenderManager(System):
         width = int(-(left[0] - right[0]))
         item.scaled_size = [width, height]
 
+        # We crop the frame out of the spritesheet to then transform it at our
+        # will! It's useful if we want to take an animation of a char running
+        # to the right and then transform it to run to the left
         cropped = pygame.Surface( frame_dimensions )
-        cropped.blit(item.image, (0,0), (item.which_frame*frame_dimensions[0], item.which_animation*frame_dimensions[1], frame_dimensions[0], frame_dimensions[1] ))
+        cropped.blit(
+            item.image,
+            (0,0),
+            (item.which_frame*frame_dimensions[0],
+                item.which_animation*frame_dimensions[1],
+                frame_dimensions[0],
+                frame_dimensions[1] ))
         to_draw = pygame.transform.scale(cropped, (width, height))
 
         dimensions = (to_draw.get_width(), to_draw.get_height())
 
         point_on_screen = pos_to_2d(item.parent.components['physics'].position)
-        screen.blit(to_draw,
-                (point_on_screen[0]-dimensions[0]*offset[0], point_on_screen[1]-dimensions[1]*offset[1])
+        screen.blit(
+            to_draw,
+            (point_on_screen[0]-dimensions[0]*offset[0],
+                point_on_screen[1]-dimensions[1]*offset[1])
         )
 
 
 class PhysicsManager(System):
+    """ Manage the Physics of the components. Change their position depending
+    on their velocity. Change their velocity depending on their acceleration."""
+
     components = set([])
 
     @classmethod
@@ -134,9 +192,12 @@ class PhysicsManager(System):
 
             # Acceleration of gravity
             if component.position[1] != 0:
-                component.velocity[1] = component.velocity[1] -6.8*1/FRAMES_PER_SECOND
+                component.velocity[1] = component.velocity[1] -\
+                6.8*1/FRAMES_PER_SECOND
 
 class CollisionsManager(System):
+    """ Runs the logic behind collisions. """
+
     components = set([])
 
     # Needed to find all 8 corners of a box around a point
@@ -151,12 +212,13 @@ class CollisionsManager(System):
             [-1,1,-1] # 7
     ]
 
-
     @classmethod
     def tick(cls):
+        print 'checking collisions'
         list_of_checked_component_pairs = []
 
         for component in cls.components:
+            # For each component, we update its bounds
             position = component.parent.components['physics'].position
             offset = component.parent.box_offset
             bounds = component.parent.box_size
@@ -168,16 +230,18 @@ class CollisionsManager(System):
             component.z_bounds[0] = position[2] - bounds[2]/2.0 + offset[2] * bounds[2]
             component.z_bounds[1] = position[2] + bounds[2]/2.0 + offset[2] * bounds[2]
 
+            # Completely just for debugging purposes
+            lines = [(0,5), (0,6), (4,6), (4,5), (0,2), (6,3), (5,7), (4,1), (3,1), (3,2), (7,2), (7,1)]
+            component_permutations = []
+            for permut in cls.permutations:
+                component_permutations.append([
+                    (permut[0]+offset[0]*2)*bounds[0]/2.0+position[0],
+                    (permut[1]+offset[1]*2)*bounds[1]/2.0+position[1],
+                    (permut[2]+offset[2]*2)*bounds[2]/2.0+position[2]] )
+            for line in lines:
+                pygame.draw.line(screen, (255,0,0), pos_to_2d(component_permutations[line[0]]), pos_to_2d(component_permutations[line[1]]))
 
         for component in cls.components:
-            permutations = []
-
-            bounds = component.parent.box_size
-            offset = component.parent.box_offset
-            position = component.parent.components['physics'].position
-
-            # We should not compute this for every tick. We should somehow fit that back into Resources so
-            # that it could be used later.
             list_of_colliding_with_component = []
 
             for item in cls.components:
@@ -187,12 +251,17 @@ class CollisionsManager(System):
                 if 'physics' not in item.parent.components:
                     continue
 
+                # Make sure to check if collisions between the two Entities are
+                # possible?
+                # Check if the hitboxes intersect
                 if component.x_bounds[0] <= item.x_bounds[0] <= component.x_bounds[1]\
                 or component.x_bounds[0] <= item.x_bounds[1] <= component.x_bounds[1]:
                     if component.y_bounds[0] <= item.y_bounds[0] <= component.y_bounds[1]\
                     or component.y_bounds[0] <= item.y_bounds[1] <= component.y_bounds[1]:
                         if component.z_bounds[0] <= item.z_bounds[0] <= component.z_bounds[1]\
                         or component.z_bounds[0] <= item.z_bounds[1] <= component.z_bounds[1]:
+                            if isinstance(item.parent, Punch) or isinstance(component.parent, Punch):
+                                print 'here'
                             list_of_colliding_with_component.append(item)
 
             for item in list_of_colliding_with_component:
@@ -202,29 +271,40 @@ class CollisionsManager(System):
 
 
 
-
 class ShadowManager(System):
+    """ Draws the shadows depending on where the Stars are located. """
+
     components = set([])
 
     @classmethod
     def update_pos(cls):
         for shadow in cls.components:
+
+            # This is not useful at the moment.
+            # Later on, we might make multiple shadows from multiple stars.
             for star in StarManager.components:
                 shadow.position =  shadow.owner.components['physics'].position[:]
                 shadow.owner_position = shadow.owner.components['physics'].position[:]
                 shadow.position[1] = 0
-                angle = copy.copy(star.angle)
+                angle = copy(star.angle)
 
+                # We don't want the shadow to stretch too much, or else pygame
+                # wont draw it
                 if 0 <= angle < 3:
                     angle = 3.0
                 if 177 < angle <= 180:
                     angle = 177.0
 
-                ratio = (math.cos(angle*PI/180)/math.sin(angle*PI/180))
+                ratio = (math.cos(angle*math.pi/180)/math.sin(angle*math.pi/180))
 
                 shadow.shadow_foot = shadow.position[:]
                 shadow.shadow_head = shadow.position[:]
 
+                # We're setting the position on the character from where the
+                # shadow will generate.
+                # In a 2D world, the shadow of a rectangle coming from a star on
+                # the top right would come from the top left and bottom right
+                # corners of a rectangle
                 if 0 <= angle < 90:
                     shadow.shadow_foot[0] += (shadow.owner.sprite_size[0])/2.0
                     shadow.shadow_head[0] -= (shadow.owner.sprite_size[0])/2.0
@@ -234,6 +314,8 @@ class ShadowManager(System):
                     shadow.shadow_head[0] += (shadow.owner.sprite_size[0])/2.0
 
 
+                # Use trigonometry to figure out the x positions of the shadow
+                # depending on the y positions of the corners
                 shadow.shadow_foot[0] -= ratio * shadow.owner.components['physics'].position[1]
                 shadow.shadow_head[0] -= ratio * (shadow.owner.components['physics'].position[1] + shadow.owner.sprite_size[1])
 
@@ -241,19 +323,14 @@ class ShadowManager(System):
     def update_scale(cls):
         for shadow in cls.components:
             for star in StarManager.components:
-                angle = copy.copy(star.angle)
-
-                if 0 <= angle < 3:
-                    angle = 3.0
-                if 177 < angle <= 180:
-                    angle = 177.0
-
                 width = abs(int(pos_to_2d( shadow.shadow_head )[0] - pos_to_2d( shadow.shadow_foot )[0]))
-                shadow.size = (width, shadow.shadow_image.get_height())
-                if angle > 180.0:
+                shadow.size = [width, shadow.shadow_image.get_height()]
+
+                if star.angle > 180.0:
+                    # Don't draw the shadow
                     shadow.size = (0,0)
 
-                shadow.shadow_image_scaled = pygame.transform.smoothscale(copy.copy(shadow.shadow_image), shadow.size)
+                shadow.shadow_image_scaled = pygame.transform.smoothscale(copy(shadow.shadow_image), tuple(shadow.size))
 
 
     @classmethod
@@ -262,11 +339,11 @@ class ShadowManager(System):
         cls.update_scale()
         for shadow in cls.components:
             for star in StarManager.components:
-                position = pos_to_2d( shadow.shadow_foot )
+                position = list(pos_to_2d( shadow.shadow_foot ))
                 if star.angle < 90.0:
-                    position = list(position)
                     position[0] -= shadow.size[0]
-                    position = tuple(position)
+                position[1] -= shadow.size[1]/2.0
+                position = tuple(position)
 
                 screen.blit(shadow.shadow_image_scaled, position)
 
@@ -275,6 +352,10 @@ class ShadowManager(System):
         cls.draw()
 
 class ControlsManager(System):
+    """ Manage the keys that are pressed by the user.
+    The Controls component will be connected to the Entity the player is playing
+    """
+
     components = set([])
     pressed_keys = []
 
@@ -283,7 +364,8 @@ class ControlsManager(System):
         K_a: [-1,0,0],
         K_s: [0,0,1],
         K_d: [1,0,0],
-        K_SPACE: [0,0,0]
+        K_SPACE: [0,0,0],
+        K_q: "punch..."
     }
 
     @classmethod
@@ -329,7 +411,9 @@ class ControlsManager(System):
                 if item.parent.components['physics'].velocity[1] is 0:
                     item.parent.components['physics'].velocity[1] = 1
             elif key is K_q:
-                punch = Punch()
+                # Make a mechanism so that there are not a punch created at
+                # every tick! There should be a delay!
+                Punch(item.parent)
             else:
                 pass
 
@@ -342,8 +426,45 @@ class ControlsManager(System):
             if event.key in cls.pressed_keys:
                 cls.pressed_keys.remove(event.key)
 
+class TimeoutManager(System):
+    """ This System will basically take care of 'ticking bombs'. When necessary,
+    a component will be created whose action will trigger after a specified
+    amount of time."""
+
+    components = set([])
+
+    @classmethod
+    def tick(cls):
+        to_trigger = []
+        current = pygame.time.get_ticks()
+
+        for timeout in cls.components:
+            if timeout.initial_time + timeout.duration < current:
+                to_trigger.append(timeout)
+
+        for timeout in to_trigger:
+            timeout.trigger()
+
+            # Remove it from the manager
+            cls.components.remove(timeout)
+
+            # Remove it
+            del timeout
+
+
+class Timeout(Component):
+    """ This component's trigger function will be called after the specified
+    duration has elapsed. """
+
+    def __init__(self, target, duration, trigger):
+        self.duration = duration
+        self.initial_time = pygame.time.get_ticks()
+        self.trigger = trigger
+
+        TimeoutManager.components.add(self)
 
 class StarManager(System):
+    """ This System rotates the stars around the world. """
     components = set([])
 
     @classmethod
@@ -356,28 +477,34 @@ class StarManager(System):
                 % 360 # Reset when angle reaches 360
 
 class Entity(object):
-	def __getattribute__(self, name):
+    """ An Entity is just going to be an object that will contain a variable
+    number of components plugged into it.
+    For example, you could have an Entity with the components: collision, physics,
+    render, and controls, which would respectively take care of the entity's
+    collision detection, movement, drawing on screen and control by the player. """
+
+    # When we do my_entity.some_attribute, if the attribtue is not already
+    # specified in the object, we will look inside the Resources that are loaded
+    # for that attribute.
+    def __getattribute__(self, name):
+        try:
+            return super(Entity, self).__getattribute__(name)
+        except AttributeError:
             try:
-                return super(Entity, self).__getattribute__(name)
-            except AttributeError:
+                the_value = Resources[super(Entity, self).__getattribute__("__class__").__name__].__getitem__(name)
+            except KeyError:
                 try:
-                    the_value = Resources[super(Entity, self).__getattribute__("__class__").__name__].__getitem__(name)
-                except KeyError:
                     the_value = Resources[super(Entity, self).__getattribute__("name")].__getitem__(name)
-                self.__setattr__(name, the_value)
-                return the_value
-            except Exception as e:
-                print "Exception: ", e
-
-	def tick(self):
-            for name, component in self.components.iteritems():
-                component.tick()
-        # Note: Maybe count how many times each `name` has been queried for.
-        # If the count is high enough, add the attribute as one of the object's if
-        # the object does not have that attribute already
+                except AttributeError:
+                    return
+            self.__setattr__(name, the_value)
+            return the_value
+        except Exception as e:
+            print "Exception: ", e
 
 
-class Render(object):
+class Render(Component):
+    """ Component needed to draw a character or boss. """
     def __init__(self, parent, source):
         self.parent = parent
         self.source = source
@@ -389,7 +516,8 @@ class Render(object):
         self.dh = self.image.get_height()
         RenderManager.components.add(self)
 
-class Physics(object):
+class Physics(Component):
+    """ Component needed to take care of the physics of the Entity """
     def __init__(self, parent, position, velocity=[0,0,0] ):
         self.parent = parent
         self.position = position
@@ -397,65 +525,98 @@ class Physics(object):
         # If we do not use copy, self.velocity will always
         # refer to the same list in memory, no matter from
         # which object it is referred.
-        self.velocity = copy.copy(velocity)
+        self.velocity = copy(velocity)
 
         PhysicsManager.components.add(self)
 
 import itertools
-class Collision(object):
-	def __init__(self, parent, source):
-            self.parent = parent
-            self.source = source
-            self.points = [[0,0,0] for i in xrange(8)]
-            self.x_bounds = [0,0]
-            self.y_bounds = [0,0]
-            self.z_bounds = [0,0]
-            self.box_size = self.parent.box_size
+class Collision(Component):
+    def __init__(self, parent, source):
+        self.parent = parent
+        self.source = source
+        self.points = [[0,0,0] for i in xrange(8)]
+        self.x_bounds = [0,0]
+        self.y_bounds = [0,0]
+        self.z_bounds = [0,0]
+        self.box_size = self.parent.box_size
 
-            CollisionsManager.components.add(self)
+        CollisionsManager.components.add(self)
+
+
+class Punch(Entity):
+    def __init__(self, parent):
+        self.parent = parent
+
+        def destroy_self(self=self):
+            for key, val in self.parent.components.iteritems():
+                if val is self:
+                    del self.parent[key]
+            CollisionsManager.components.remove(self.components['collision'])
+            del self.components['collision']
+            del self
+
+        position = copy(self.parent.components['physics'].position)
+        direction_facing = 1
+        position[0] += direction_facing * parent.box_size[0]/2.0
+        position[1] += parent.box_size[1]-10.0
+
+        physics = Component()
+        physics.position = position
+
+        self.components = {
+            'timeout': Timeout(self, 300, destroy_self),
+            'collision': Collision(self, "punch"),
+            'physics': physics
+        }
+
+        #self.components['collision'].position += [direction*offset, height, 0]
 
 
 class CollisionsPossibleClass(object):
-	def __init__(self):
-            pass
+    def __getitem__(self, name):
+        return getattr(self, name)
 
-	def __getitem__(self, name):
-            return getattr(self, name)
+    def collision(self, one, two):
+        key = str(one) + '_with_' + str(two)
+        second_key = str(two) + '_with_' + str(one)
 
-	def collision(self, one, two):
-            key = str(one) + '_with_' + str(two)
-            second_key = str(two) + '_with_' + str(one)
+        if isinstance(one, Punch) or isinstance(two, Punch):
+            pdb.set_trace()
+            print 'here'
 
-            if key in dir(self):
-                return self[key]
+        if key in dir(self):
+            return self[key]
 
-	def Tree_with_Player(self, tree, player):
-            print 'tree gives shadow to player'
+    def Tree_with_Player(self, tree, player):
+        print 'tree gives shadow to player'
 
-	def Wall_with_Player(self, wall, player):
-            return
-            # Push the character off
+    def Wall_with_Player(self, wall, player):
+        return
+        # Push the character off
 
-            # k is the distance we have to push the player off
-            k = numpy.dot(player.components['physics'].position, wall.direction) +\
-                numpy.dot(player.components['collision'].box_size, wall.direction)/2.0 -\
-                (numpy.dot(wall.components['physics'].position, wall.direction) -\
-                numpy.dot(wall.components['collision'].box_size, wall.direction)/2.0)
+        # k is the distance we have to push the player off
+        k = numpy.dot(player.components['physics'].position, wall.direction) +\
+            numpy.dot(player.components['collision'].box_size, wall.direction)/2.0 -\
+            (numpy.dot(wall.components['physics'].position, wall.direction) -\
+            numpy.dot(wall.components['collision'].box_size, wall.direction)/2.0)
 
-            player.components['physics'].position = map(add,
-                player.components['physics'].position,
-                [x* (k) for x in wall.direction] )
+        player.components['physics'].position = map(add,
+            player.components['physics'].position,
+            [x* (k) for x in wall.direction] )
 
-	def RagdollBoss_with_Warrior(self, boss, player):
-            print "Player looks at Ragdoll awkwardly"
-            player.components['stats'].health -= 0.1
-            if player.components['stats'].health <= 0.0:
-                player.components['stats'].health = 0.0
+    def RagdollBoss_with_Warrior(self, boss, player):
+        print "Player looks at Ragdoll awkwardly"
+        player.components['stats'].health -= 0.1
+        if player.components['stats'].health <= 0.0:
+            player.components['stats'].health = 0.0
 
-	def RagdollBoss_with_RagdollBoss(self, boss, player):
-            print "Two ragdolls touch..."
+    def Punch_with_RagdollBoss(self, punch, boss):
+        print 'Warrior punched ragdoll!'
+        boss.components['stats'].health -= 0.1
+        if boss.components['stats'].health <= 0.0:
+            boss.components['stats'].health = 0.0
 
-
+# I'm just doing this so that we do not need to wrap every method with @classmethod
 CollisionsPossible = CollisionsPossibleClass()
 
 
@@ -466,22 +627,14 @@ class Battlefield(object):
         pygame.draw.polygon(screen, (0,0,255), edges )
 
 
-class Controls(object):
+class Controls(Component):
     def __init__(self, parent):
         self.parent = parent
         self.pressed_keys = []
 
-        self.keys = {
-            K_w: [0,0,-1],
-            K_a: [-1,0,0],
-            K_s: [0,0,1],
-            K_d: [1,0,0],
-            K_SPACE: [0,0,0]
-        }
-
         ControlsManager.components.add(self)
 
-class FightingStats(object):
+class FightingStats(Component):
     def __init__(self, parent):
         self.health = 50.0
         self.max_health = 100.0
@@ -522,14 +675,8 @@ class RagdollBoss(Entity):
             'collision': Collision(self, "RagdollBoss"),
             'render': Render(self, "RagdollBoss"),
             'shadow': Shadow(self, "player"),
+            'stats': FightingStats(self)
         }
-
-
-def call_super(func, cls):
-    def wrapped(self, *args, **kwargs):
-        super(cls, self).__getattribute__(func.__name__)(self, *args, **kwargs)
-        func(self, *args, **kwargs)
-    return wrapped
 
 
 import yaml
@@ -587,15 +734,17 @@ class PauseMenu(Menu):
             # Go back the menu tree.
             return
 
-# This is the star class for various stars
-class Star(object):
+class Star(Component):
+    """ This is the star class for various stars """
+
     def __init__(self):
         self.angle = 0
         StarManager.components.add(self)
 
 
-# This is the shadow class for various shadows
-class Shadow(object):
+class Shadow(Component):
+    """ This is the shadow class for various shadows. """
+
     def __init__(self, owner, owner_string):
         self.shadow_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'shadows', owner_string+'_shadow.png'))
         self.owner = owner
