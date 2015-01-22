@@ -8,14 +8,6 @@ yaml_is_sexy = yaml.load(open('../data/craftstore.yaml','r'))
 display_res = (1920,1080)
 factor = (float(display_res[0])/3840.0,float(display_res[1])/2160.0)
 
-inv_list = [ 'Copper', 'Copper', 'Copper', 'Aluminum', 'Aluminum', 'Uranium', 'Ruby', 'Ruby', 'Emerald', 'Diamond']
-my_dict = {}
-for material in inv_list:
-    if material not in my_dict:
-        my_dict[material] = 1
-    else:
-        my_dict[material] += 1
-print my_dict
 pos = []
 pos_order = ['metal','gem','potato','tomato','science']
 for i in pos_order:
@@ -24,19 +16,32 @@ for i in pos_order:
 pos_metal = pos[0:6]
 pos_gems = pos[6:12]
 
-pos_dict ={
+inv_list = [ 'Copper', 'Copper', 'Copper', 'Aluminum', 'Aluminum', 'Uranium', 'Ruby', 'Ruby', 'Emerald', 'Diamond']
+qty_dict = {}
+for material in inv_list:
+    if material not in qty_dict:
+        qty_dict[material] = 1
+    else:
+        qty_dict[material] += 1
+print qty_dict
+
+"""cell_dict ={
     pos_metal[0]: 'Copper',
     pos_metal[1]: 'Aluminum',
     pos_metal[2]: 'Uranium',
     pos_gems[0]: 'Ruby',
     pos_gems[1]: 'Emerald',
     pos_gems[2]: 'Diamond'
-    }
+    }"""
 type_dict = [
+    {1: 'Copper', 2: 'Aluminum', 3: 'Uranium'},
+    {1: 'Ruby', 2: 'Emerald', 3: 'Diamond'}]
+
+"""type_dict = [
     {'Copper': 1, 'Aluminum': 2, 'Uranium': 3},
-    {'Ruby': 1, 'Emerald': 2, 'Diamond': 3}]
+    {'Ruby': 1, 'Emerald': 2, 'Diamond': 3}]"""
 item_type = [0,0,0,0,0]
-item_qtty = [0,0,0,0,0]
+item_qty = [0,0,0,0,0]
 
 keys_gems = [K_q,K_w,K_e,K_r,K_t,K_y]
 keys_end = [K_RETURN]
@@ -59,7 +64,33 @@ screen_final = pygame.transform.smoothscale(screen_render, display_res)
 screen.blit(screen_final,(0,0))
 pygame.display.flip()
 
-def potater (index):
+
+def potater (index, typeof_item):
+    if qty_dict[type_dict[index][typeof_item]] == 0:
+        print 'U suk no moar' #change to gui function
+    elif item_type[index] != 0 and item_qty[index] !=0:
+        if item_type[index] == typeof_item:
+            item_type[index] = typeof_item
+            item_qty[index] += 1
+            qty_dict[type_dict[index][typeof_item]] -= 1
+            print type_dict[index][typeof_item], "added, total amount:", item_qty[index] #change to gui function
+            print 'amount left:', qty_dict[type_dict[index][typeof_item]] #change to gui function
+        else:
+            print 'Cannot add different material', 'Your crafting inventory:' #change to gui function
+            print item_type , item_qty #change to gui function
+    else:
+        item_type[index] = typeof_item
+        item_qty[index] += 1
+        qty_dict[type_dict[index][typeof_item]] -= 1
+        print type_dict[index][typeof_item], "added, total amount:", item_qty[index] #change to gui function
+        print 'amount left:', qty_dict[type_dict[index][typeof_item]] #change to gui function
+    print typeof_item, item_type[index]
+    return (item_type[index],item_qty[index])
+        
+            
+            
+        
+"""def potater (index):
                 if event.key in keys:
                     if event.key in [K_1,K_2,K_3, K_q,K_w,K_e]:
                         if my_dict[keys[event.key]] == 0:
@@ -106,12 +137,12 @@ def potater (index):
                                     item_qtty[index] = 0
                                 print keys[event.key], "removed, total amount", item_qtty[index]
                                 print 'amount left:', my_dict[keys[event.key]]
-                return (item_type[index],item_qtty[index])
+                return (item_type[index],item_qtty[index])"""
 
 def mouse_check(mouse_pos):
     print mouse_pos[0], mouse_pos[1]
     for x in pos:
-        print x[0]*factor[0], x[2]*factor[0], x[1]*factor[1], x[3]*factor[1]
+        #print x[0]*factor[0], x[2]*factor[0], x[1]*factor[1], x[3]*factor[1]
         if (mouse_pos[0] >= x[0]*factor[0] and mouse_pos[0] <= x[2]*factor[0] and mouse_pos[1] >= x[1]*factor[1] and mouse_pos[1] <= x[3]*factor[1]):
             return (pos.index(x)/6,pos.index(x)%6)
         else:
@@ -127,16 +158,13 @@ while crafting:
         if event.type == MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
             which_rect = mouse_check(mouse_pos)
-            print which_rect
-            """if event.mouse_get in keys_metal:
-                metal_tuple = potater(0)
-            elif event.key in keys_gems:
-                gem_tuple = potater(1)
-            elif event.key in keys_end:
+            #print which_rect
+            potater(which_rect[0],(which_rect[1]+1))
+        if event.type == KEYDOWN:
+            if event.key in keys_end:
                 print 'crafting finished, result:'
                 crafting = False
-            else:
-                pass"""
+
 #En bas: tree prototype
 dict = {(1,1,1,1) : 'pistol', (1,2,1,1): 'shotgun', (1,3,1,1): 'potato launcher'}
 crafting_list = metal_tuple+gem_tuple
