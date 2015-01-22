@@ -1,14 +1,17 @@
 craft:
     largesquares:
         img: ['..','data','craftstore','largesquare.png']
+        size: [350,350]
         positions: [[100,540],[500,540],[900,540],[1300,540],[1700,540]]
     buttons:
         img: ['..','data','craftstore','button.png']
+        size: [500,200]
         positions: [850,950]
 
 store:
     smallsquares:
         img: ['..','data','craftstore','smallsquare.png']
+        size: [180,180]
         positions:
             metal: [[295,400],[295,600],[295,800],[565,400],[565,600],[565,800]]
             gems: [[995,400],[995,600],[995,800],[1265,400],[1265,600],[1265,800]]
@@ -17,11 +20,13 @@ store:
             science: [[3095,400],[3095,600],[3095,800],[3365,400],[3365,600],[3365,800]]
     buttons:
         img: ['..','data','craftstore','button.png']
+        size: [500,200]
         positions: [[1070,1150],[1670,1150],[2270,1150]]
 
 craftstore:
     smallsquares:
         img: ['..','data','craftstore','smallsquare.png']
+        size: [180,180]
         positions:
             metal: [[295,1500],[295,1700],[295,1900],[565,1500],[565,1700],[565,1900]]
             gem: [[995,1500],[995,1700],[995,1900],[1265,1500],[1265,1700],[1265,1900]]
