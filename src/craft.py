@@ -5,7 +5,7 @@ import yaml
 import pdb
 from operator import add
 yaml_is_sexy = yaml.load(open('../data/craftstore.yaml','r'))
-display_res = (1920,1080)
+display_res = (960,540)
 factor = (float(display_res[0])/3840.0,float(display_res[1])/2160.0)
 
 pos = []
@@ -13,8 +13,12 @@ pos_order = ['metal','gem','potato','tomato','science']
 for i in pos_order:
     for j in range(len(yaml_is_sexy['craftstore']['smallsquares']['positions'][i])):
         pos.append(tuple(yaml_is_sexy['craftstore']['smallsquares']['positions'][i][j]) + tuple(map(add, yaml_is_sexy['craftstore']['smallsquares']['positions'][i][j], yaml_is_sexy['craftstore']['smallsquares']['size'])))
-pos_metal = pos[0:6]
-pos_gems = pos[6:12]
+for i in range(len(yaml_is_sexy['craft']['largesquares']['positions'])):
+    pos.append(tuple(yaml_is_sexy['craft']['largesquares']['positions'][i]) + tuple(map(add, yaml_is_sexy['craft']['largesquares']['positions'][i], yaml_is_sexy['craft']['largesquares']['size'] )))
+pos.append(tuple(yaml_is_sexy['craft']['buttons']['positions']) + tuple(map(add, yaml_is_sexy['craft']['buttons']['positions'], yaml_is_sexy['craft']['buttons']['size'])))
+print pos
+#pos_metal = pos[0:6]
+#pos_gems = pos[6:12]
 
 inv_list = [ 'Copper', 'Copper', 'Copper', 'Aluminum', 'Aluminum', 'Uranium', 'Ruby', 'Ruby', 'Emerald', 'Diamond']
 qty_dict = {}
@@ -65,27 +69,30 @@ screen.blit(screen_final,(0,0))
 pygame.display.flip()
 
 
-def potater (index, typeof_item):
-    if qty_dict[type_dict[index][typeof_item]] == 0:
-        print 'U suk no moar' #change to gui function
-    elif item_type[index] != 0 and item_qty[index] !=0:
-        if item_type[index] == typeof_item:
+def potater (index, typeof_item, wat_do):
+    if wat_do == 0:
+        if qty_dict[type_dict[index][typeof_item]] == 0:
+            print 'U suk no moar' #change to gui function
+        elif item_type[index] != 0 and item_qty[index] !=0:
+            if item_type[index] == typeof_item:
+                item_type[index] = typeof_item
+                item_qty[index] += 1
+                qty_dict[type_dict[index][typeof_item]] -= 1
+                print type_dict[index][typeof_item], "added, total amount:", item_qty[index] #change to gui function
+                print 'amount left:', qty_dict[type_dict[index][typeof_item]] #change to gui function
+            else:
+                print 'Cannot add different material', 'Your crafting inventory:' #change to gui function
+                print item_type , item_qty #change to gui function
+        else:
             item_type[index] = typeof_item
             item_qty[index] += 1
             qty_dict[type_dict[index][typeof_item]] -= 1
             print type_dict[index][typeof_item], "added, total amount:", item_qty[index] #change to gui function
             print 'amount left:', qty_dict[type_dict[index][typeof_item]] #change to gui function
-        else:
-            print 'Cannot add different material', 'Your crafting inventory:' #change to gui function
-            print item_type , item_qty #change to gui function
-    else:
-        item_type[index] = typeof_item
-        item_qty[index] += 1
-        qty_dict[type_dict[index][typeof_item]] -= 1
-        print type_dict[index][typeof_item], "added, total amount:", item_qty[index] #change to gui function
-        print 'amount left:', qty_dict[type_dict[index][typeof_item]] #change to gui function
-    print typeof_item, item_type[index]
-    return (item_type[index],item_qty[index])
+        print typeof_item, item_type[index]
+        return (item_type[index],item_qty[index])
+    elif wat_do == 1:
+        if 
         
             
             
@@ -144,7 +151,14 @@ def mouse_check(mouse_pos):
     for x in pos:
         #print x[0]*factor[0], x[2]*factor[0], x[1]*factor[1], x[3]*factor[1]
         if (mouse_pos[0] >= x[0]*factor[0] and mouse_pos[0] <= x[2]*factor[0] and mouse_pos[1] >= x[1]*factor[1] and mouse_pos[1] <= x[3]*factor[1]):
-            return (pos.index(x)/6,pos.index(x)%6)
+            if pos.index(x) < 30:
+                return (pos.index(x)/6,pos.index(x)%6,0)
+            elif pos.index(x) >= 30 and pos.index(x) < 35:
+                return (pos.index(x)/6,pos.index(x)%6, 1)
+            elif pos.index(x) >= 35:
+                return (pos.index(x)/6,pos.index(x)%6, 2)
+            else:
+                pass
         else:
             pass
         
@@ -158,8 +172,8 @@ while crafting:
         if event.type == MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
             which_rect = mouse_check(mouse_pos)
-            #print which_rect
-            potater(which_rect[0],(which_rect[1]+1))
+            print which_rect
+            #potater(which_rect[0],(which_rect[1]+1),which_rect[2])
         if event.type == KEYDOWN:
             if event.key in keys_end:
                 print 'crafting finished, result:'
