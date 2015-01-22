@@ -10,7 +10,7 @@ import random
 import yaml
 from copy import copy
 import pdb
-import bench
+import numpy.ma.bench
 
 # Set up pygame, random number generator, font, colors and math constants
 pygame.init()
