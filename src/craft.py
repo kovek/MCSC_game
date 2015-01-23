@@ -27,19 +27,19 @@ for material in inv_list:
         qty_dict[material] += 1
 """print qty_dict""" #debug
 
-type_dict =\
-    [{j%6+1:yaml_is_sexy['items'][i][j%6] for j in range(pos_order.index(i)*6,pos_order.index(i)*6+len(yaml_is_sexy['items'][i]))} for i in pos_order]
+type_dict =[
+    {j%6+1:yaml_is_sexy['items'][i][j%6] for j in range(pos_order.index(i)*6,pos_order.index(i)*6+len(yaml_is_sexy['items'][i]))} for i in pos_order]
 print type_dict
 
 item_type = [0,0,0,0,0]
 item_qty = [0,0,0,0,0]
 item_dict = {(1,1,1,1) : 'pistol', (1,2,1,1): 'shotgun', (1,3,1,1): 'potato launcher'}
 crafting_tuples = [(),(),(),(),()]
-crafting_tuple_final = ()
+crafting_tuple_final = 
 
 crafting = True
 
-pygame.init()
+pygame.init()()
 pygame.font.init()
 screen = pygame.display.set_mode(display_res)
 screen_render = pygame.Surface((3840,2160))
@@ -50,8 +50,8 @@ small_yes = pygame.image.load(os.path.join(*yaml_is_sexy['craftstore']['yeah']['
 small_no = pygame.image.load(os.path.join(*yaml_is_sexy['craftstore']['nope']['img']))
 craftfont = pygame.font.Font(None, 60)
 
-status = [0 for i in range(len(yaml_is_sexy['items'])) for j in range(len(yaml_is_sexy['items'][i]))]
-counts = [0 for i in range(len(yaml_is_sexy['items'])) for j in range(len(yaml_is_sexy['items'][i]))]
+status = [0 for i in yaml_is_sexy['items'] for j in range(len(yaml_is_sexy['items'][i]))]
+counts = [0 for i in yaml_is_sexy['items'] for j in range(len(yaml_is_sexy['items'][i]))]
 counts_craft = [0 for i in range(len(yaml_is_sexy['craft']['largesquares']['positions']))]
 
 def update_screen():
