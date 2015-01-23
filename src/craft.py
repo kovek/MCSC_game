@@ -27,12 +27,9 @@ for material in inv_list:
         qty_dict[material] += 1
 """print qty_dict""" #debug
 
-type_dict = [
-    {1: 'Copper', 2: 'Aluminum', 3: 'Uranium'},
-    {1: 'Ruby', 2: 'Emerald', 3: 'Diamond'},
-    {},
-    {},
-    {}]
+type_dict =\
+    [{j%6+1:yaml_is_sexy['items'][i][j%6] for j in range(pos_order.index(i)*6,pos_order.index(i)*6+len(yaml_is_sexy['items'][i]))} for i in pos_order]
+print type_dict
 
 item_type = [0,0,0,0,0]
 item_qty = [0,0,0,0,0]
@@ -53,8 +50,8 @@ small_yes = pygame.image.load(os.path.join(*yaml_is_sexy['craftstore']['yeah']['
 small_no = pygame.image.load(os.path.join(*yaml_is_sexy['craftstore']['nope']['img']))
 craftfont = pygame.font.Font(None, 60)
 
-status = [0 for i in range(len(yaml_is_sexy['items']))]
-counts = [0 for i in range(len(yaml_is_sexy['items']))]
+status = [0 for i in range(len(yaml_is_sexy['items'])) for j in range(len(yaml_is_sexy['items'][i]))]
+counts = [0 for i in range(len(yaml_is_sexy['items'])) for j in range(len(yaml_is_sexy['items'][i]))]
 counts_craft = [0 for i in range(len(yaml_is_sexy['craft']['largesquares']['positions']))]
 
 def update_screen():

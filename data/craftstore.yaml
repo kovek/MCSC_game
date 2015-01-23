@@ -39,8 +39,8 @@ craftstore:
         img: ['..', 'data', 'craftstore', 'smallno.png']
 
 items:
-    metals: 'Lead', 'Aluminum', 'Steel', 'Copper', 'Gold', 'Uranium'
-    gems: 'Amber', 'Amethyst', 'Ruby', 'Emerald', 'Sapphire', 'Diamond'
-    potato: 'Russet', 'Yukon Gold', 'Red Potato', 'White Potato', 'Purple Potato', 'Starch Condenser'
-    tomato: 'Tomato Seeds', 'Baby Tomato', 'Green Tomato', 'Yellow Tomato', 'Red Tomato', 'Rotten Tomato'
-    science: 'Social Sciences', 'Botanics', 'Biology', 'Chemistry', 'Mechanics', 'Particle Physics'
+    metal: ['Lead', 'Aluminum', 'Steel', 'Copper', 'Gold', 'Uranium']
+    gem: ['Amber', 'Amethyst', 'Ruby', 'Emerald', 'Sapphire', 'Diamond']
+    potato: ['Russet', 'Yukon Gold', 'Red Potato', 'White Potato', 'Purple Potato', 'Starch Condenser']
+    tomato: ['Tomato Seeds', 'Baby Tomato', 'Green Tomato', 'Yellow Tomato', 'Red Tomato', 'Rotten Tomato']
+    science: ['Social Sciences', 'Botanics', 'Biology', 'Chemistry', 'Mechanics', 'Particle Physics']
