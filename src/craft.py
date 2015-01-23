@@ -29,7 +29,10 @@ for material in inv_list:
 
 type_dict = [
     {1: 'Copper', 2: 'Aluminum', 3: 'Uranium'},
-    {1: 'Ruby', 2: 'Emerald', 3: 'Diamond'}]
+    {1: 'Ruby', 2: 'Emerald', 3: 'Diamond'},
+    {},
+    {},
+    {}]
 
 item_type = [0,0,0,0,0]
 item_qty = [0,0,0,0,0]
@@ -132,7 +135,7 @@ def counter(): #this function will have to change a bit once the icons are in, i
                     except:
                         pass
         for item in range(len(yaml_is_sexy['craft']['largesquares']['positions'])):
-            print item_qty[item]
+            """print item_qty[item]""" #debug
             if item_qty[item] >= 1:
                 counts_craft[item] = craftfont.render(str(item_qty[item]), 1, (255,255,255), None)
         for i in range(len(yaml_is_sexy['craft']['largesquares']['positions'])):
@@ -151,16 +154,25 @@ def counter(): #this function will have to change a bit once the icons are in, i
 def outlines():
     for item in qty_dict:
         if qty_dict[item] == 0:
-            status[yaml_is_sexy['items'].index(item)] = 1
+            status[yaml_is_sexy['items'].index(item)] = 0
         elif qty_dict[item] != 0:
             status[yaml_is_sexy['items'].index(item)] = 2
+    for i in range(len(yaml_is_sexy['craft']['largesquares']['positions'])):
+        if item_type[i] != 0:
+            if item_qty[i] == 0:
+                for item in type_dict[i]:
+                    status[i*6+item-1] = 2
+            else:
+                for item in type_dict[i]:
+                        if item != item_type[i]:
+                            status[i*6+item-1] = 1
     for i in pos_order:
         for j in  range(len(yaml_is_sexy['craftstore']['smallsquares']['positions'][i])):
             if status[pos_order.index(i)*6+j] == 2:
                 screen_render.blit(small_yes, tuple(yaml_is_sexy['craftstore']['smallsquares']['positions'][i][j]))
             elif status[pos_order.index(i)*6+j] == 1:
                 screen_render.blit(small_no, tuple(yaml_is_sexy['craftstore']['smallsquares']['positions'][i][j]))
-    """print status""" #debug
+    print item_type
 
 def mouse_check(mouse_pos):
     #print mouse_pos[0], mouse_pos[1]
@@ -184,7 +196,7 @@ while crafting:
         if event.type == MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
             which_rect = mouse_check(mouse_pos)
-            print which_rect
+            """print which_rect""" #debug
             try:
                 len(which_rect)
             except:
