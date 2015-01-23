@@ -38,4 +38,4 @@ craftstore:
     nope:
         img: ['..','data','craftstore','smallno.png']
 
-items: ['Copper','Aluminum','Uranium','M4','M5','M6','Ruby','Emerald','Diamond','G4','G5','G6','P1','P2','P3','P4','P5','P6','T1','T2','T3','T4','T5','T6','S1','S2','S3','S4','S5','S6']
+items: ['Copper','Aluminum','Uranium','M4','M5','M6', 'Amber', 'Amethyst', 'Ruby','Emerald','Sapphire', 'Diamond', 'P1','P2','P3','P4','P5','P6','T1','T2','T3','T4','T5','T6','S1','S2','S3','S4','S5','S6']
