@@ -19,23 +19,28 @@ store:
             tomato: [[2395,400],[2395,600],[2395,800],[2665,400],[2665,600],[2665,800]]
             science: [[3095,400],[3095,600],[3095,800],[3365,400],[3365,600],[3365,800]]
     buttons:
-        img: ['..','data','craftstore','button.png']
-        size: [500,200]
-        positions: [[1070,1150],[1670,1150],[2270,1150]]
+        img: ['..', 'data', 'craftstore', 'button.png']
+        size: [500, 200]
+        positions: [[1070, 1150], [1670, 1150], [2270, 1150]]
 
 craftstore:
     smallsquares:
-        img: ['..','data','craftstore','smallsquare.png']
-        size: [180,180]
+        img: ['..', 'data', 'craftstore', 'smallsquare.png']
+        size: [180, 180]
         positions:
-            metal: [[295,1500],[295,1700],[295,1900],[565,1500],[565,1700],[565,1900]]
-            gem: [[995,1500],[995,1700],[995,1900],[1265,1500],[1265,1700],[1265,1900]]
-            potato: [[1695,1500],[1695,1700],[1695,1900],[1965,1500],[1965,1700],[1965,1900]]
-            tomato: [[2395,1500],[2395,1700],[2395,1900],[2665,1500],[2665,1700],[2665,1900]]
-            science: [[3095,1500],[3095,1700],[3095,1900],[3365,1500],[3365,1700],[3365,1900]]
+            metal: [[295, 1500],[295, 1700],[295, 1900], [565, 1500], [565, 1700], [565, 1900]]
+            gem: [[995, 1500], [995, 1700], [995, 1900], [1265, 1500], [1265, 1700], [1265, 1900]]
+            potato: [[1695, 1500], [1695, 1700], [1695, 1900], [1965, 1500], [1965, 1700], [1965, 1900]]
+            tomato: [[2395, 1500], [2395, 1700], [2395, 1900], [2665, 1500], [2665, 1700], [2665, 1900]]
+            science: [[3095, 1500], [3095, 1700], [3095, 1900], [3365, 1500], [3365, 1700], [3365, 1900]]
     yeah:
-        img: ['..','data','craftstore','smallyes.png']
+        img: ['..', 'data', 'craftstore', 'smallyes.png']
     nope:
-        img: ['..','data','craftstore','smallno.png']
+        img: ['..', 'data', 'craftstore', 'smallno.png']
 
-items: ['Copper','Aluminum','Uranium','M4','M5','M6', 'Amber', 'Amethyst', 'Ruby','Emerald','Sapphire', 'Diamond', 'P1','P2','P3','P4','P5','P6','T1','T2','T3','T4','T5','T6','S1','S2','S3','S4','S5','S6']
+items:
+    metals: 'Lead', 'Aluminum', 'Steel', 'Copper', 'Gold', 'Uranium'
+    gems: 'Amber', 'Amethyst', 'Ruby', 'Emerald', 'Sapphire', 'Diamond'
+    potato: 'Russet', 'Yukon Gold', 'Red Potato', 'White Potato', 'Purple Potato', 'Starch Condenser'
+    tomato: 'Tomato Seeds', 'Baby Tomato', 'Green Tomato', 'Yellow Tomato', 'Red Tomato', 'Rotten Tomato'
+    science: 'Social Sciences', 'Botanics', 'Biology', 'Chemistry', 'Mechanics', 'Particle Physics'
