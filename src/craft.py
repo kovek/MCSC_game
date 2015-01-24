@@ -7,7 +7,6 @@ from operator import add
 yaml_is_sexy = yaml.load(open('../data/craftstore.yaml','r'))
 display_res = (960,540)
 factor = (float(display_res[0])/3840.0,float(display_res[1])/2160.0)
-
 pos = []
 pos_order = ['metal','gem','potato','tomato','science']
 for i in pos_order:
@@ -235,6 +234,6 @@ while crafting:
                         crafting_results.append(item_dict[crafting_tuple_final])
                     else:
                         print "none"
-                    crafting_tuple_final = 0
+                    crafting_tuple_final = ()
                     print crafting_results
                     
