@@ -8,15 +8,18 @@ craft:
         size: [500,200]
         positions: [850,950]
     text:
-        img: ['..', 'data','craftstore','craftingstation.png']
-        size: [500,200]
-        positions: [500, 1000]
-        img: ['..' 'data','craftstore','craftbutton.png']
-        size: [500,200]
-        position: [850,950]
-        img:['..' 'data','craftstore','blueprints.png']
-        size: [500,200]
-        position: [3300, 1000]
+        craftingstation:
+            img: ['..', 'data','craftstore','craftingstation.png']
+            size: [500,200]
+            positions: [500, 1000]
+        craftbutton:
+            img: ['..', 'data','craftstore','craftbutton.png']
+            size: [500,200]
+            positions: [850,950]
+        blueprints:
+            img: ['..', 'data','craftstore','blueprints.png']
+            size: [500,200]
+            positions: [3300, 1000]
 store:
     smallsquares:
         img: ['..','data','craftstore','smallsquare.png']

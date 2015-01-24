@@ -5,7 +5,7 @@ import yaml
 import pdb
 from operator import add
 yaml_is_sexy = yaml.load(open('../data/craftstore.yaml','r'))
-display_res = (960,540)
+display_res = (1920,1080)
 factor = (float(display_res[0])/3840.0,float(display_res[1])/2160.0)
 pos = []
 pos_order = ['metal','gem','potato','tomato','science']
@@ -43,6 +43,9 @@ crafting_tuple_final = ()
 crafting_results = []
 crafting = True
 
+texts = []
+text_list = [i for i in yaml_is_sexy['craft']['text']]
+
 pygame.init()
 pygame.font.init()
 screen = pygame.display.set_mode(display_res)
@@ -52,6 +55,9 @@ inv_square = pygame.image.load(os.path.join(*yaml_is_sexy['craftstore']['smallsq
 craft_button = pygame.image.load(os.path.join(*yaml_is_sexy['craft']['buttons']['img']))
 small_yes = pygame.image.load(os.path.join(*yaml_is_sexy['craftstore']['yeah']['img']))
 small_no = pygame.image.load(os.path.join(*yaml_is_sexy['craftstore']['nope']['img']))
+for i in yaml_is_sexy['craft']['text']:
+    text = pygame.image.load(os.path.join(*yaml_is_sexy['craft']['text'][i]['img']))
+    texts.append(text)
 craftfont = pygame.font.Font(None, 60)
 
 status = [0 for i in range(len(yaml_is_sexy['items']))]
@@ -72,6 +78,8 @@ def update_screen():
                 screen_render.blit(small_yes, tuple(yaml_is_sexy['craftstore']['smallsquares']['positions'][i][j]))
             elif status[pos_order.index(i)*6+j] == 1:
                 screen_render.blit(small_no, tuple(yaml_is_sexy['craftstore']['smallsquares']['positions'][i][j]))
+    for i in range(len(yaml_is_sexy['craft']['text'])):
+        screen_render.blit(texts[i], yaml_is_sexy['craft']['text'][text_list[i]]['positions'])
     counter()
     outlines()
     screen_final = pygame.transform.smoothscale(screen_render, display_res)
