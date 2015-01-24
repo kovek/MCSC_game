@@ -11,6 +11,9 @@ craft:
         img: ['..', 'data','craftstore','craftingstation.png']
         size: [500,200]
         positions: [500, 1000]
+	    img: ['..' 'data','craftstore','craftbutton.png']
+	    size: [500,200]
+	    position: [850,950]
 store:
     smallsquares:
         img: ['..','data','craftstore','smallsquare.png']
