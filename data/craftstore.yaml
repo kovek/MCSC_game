@@ -38,7 +38,7 @@ craftstore:
     nope:
         img: ['..', 'data', 'craftstore', 'smallno.png']
 
-items:
+item_types:
     metal: ['Lead', 'Aluminum', 'Steel', 'Copper', 'Gold', 'Uranium']
     gem: ['Amber', 'Amethyst', 'Ruby', 'Emerald', 'Sapphire', 'Diamond']
     potato: ['Russet', 'Yukon Gold', 'Red Potato', 'White Potato', 'Purple Potato', 'Starch Condenser']
