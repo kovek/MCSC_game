@@ -38,10 +38,10 @@ print type_dict
 
 item_type = [0,0,0,0,0]
 item_qty = [0,0,0,0,0]
-item_dict = {(1,1,1,1) : 'pistol', (1,2,1,1): 'shotgun', (1,3,1,1): 'potato launcher'}
+item_dict = {(4,1,3,1) : 'pistol', (4,2,3,1): 'shotgun', (4,3,3,1): 'potato launcher'}
 crafting_tuples = [(),(),(),(),()]
 crafting_tuple_final = ()
-
+crafting_results = []
 crafting = True
 
 pygame.init()
@@ -159,16 +159,7 @@ def counter(): #this function will have to change a bit once the icons are in, i
 # here will be implemented a function that blits the item sprites
 
 def outlines():
-    for item in yaml_is_sexy['items']:
-        try:
-            qty_dict[item]
-        except:
-            status[yaml_is_sexy['items'].index(item)] = 0
-        else:
-            if qty_dict[item] == 0:
-                status[yaml_is_sexy['items'].index(item)] = 0
-            elif qty_dict[item] != 0:
-                status[yaml_is_sexy['items'].index(item)] = 2
+    
     for i in range(len(yaml_is_sexy['craft']['largesquares']['positions'])):
         if item_qty[i] != 0:
             for item in type_dict[i]:
@@ -179,13 +170,23 @@ def outlines():
             for item in type_dict[i]:
                 if type_dict[i][item] in qty_dict:
                     status[i*6+item-1] = 2
+
+    for item in yaml_is_sexy['items']:
+        try:
+            qty_dict[item]
+        except:
+            status[yaml_is_sexy['items'].index(item)] = 0
+        else:
+            if qty_dict[item] == 0:
+                status[yaml_is_sexy['items'].index(item)] = 0
+            elif qty_dict[item] != 0:
+                pass
     for i in pos_order:
         for j in  range(len(yaml_is_sexy['craftstore']['smallsquares']['positions'][i])):
             if status[pos_order.index(i)*6+j] == 2:
                 screen_render.blit(small_yes, tuple(yaml_is_sexy['craftstore']['smallsquares']['positions'][i][j]))
             elif status[pos_order.index(i)*6+j] == 1:
                 screen_render.blit(small_no, tuple(yaml_is_sexy['craftstore']['smallsquares']['positions'][i][j]))
-    print status
 
 def mouse_check(mouse_pos):
     #print mouse_pos[0], mouse_pos[1]
@@ -226,7 +227,14 @@ while crafting:
                     print "crafting finished, result:"
                     for i in range(5):
                         crafting_tuple_final += crafting_tuples[i]
-                    try:
+                    if crafting_tuple_final in item_dict:
+                        for i in range(len(yaml_is_sexy['craft']['largesquares']['positions'])):
+                            item_type[i] = 0
+                            item_qty[i] = 0
                         print item_dict[crafting_tuple_final]
-                    except:
+                        crafting_results.append(item_dict[crafting_tuple_final])
+                    else:
                         print "none"
+                    crafting_tuple_final = 0
+                    print crafting_results
+                    
