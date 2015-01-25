@@ -220,9 +220,9 @@ def outlines():
                         for k in range(len(buy_list)):
                             for l in range(len(buy_list[k])):
                                 buy_value_temp += buy_list[k][l]*prices_dict[k][l+1]
-                        if buy_list[pos_order.index(i)][yaml_is_sexy['items'].index(item)%6] != 0 and (buy_value_temp ) <= money:
+                        if buy_list[pos_order.index(i)][yaml_is_sexy['items'].index(item)%6] != 0 and buy_value_temp <= money:
                             status_store[yaml_is_sexy['items'].index(item)] = 2
-                        elif buy_list[pos_order.index(i)][yaml_is_sexy['items'].index(item)%6] != 0 and (buy_value_temp ) > money:
+                        elif buy_list[pos_order.index(i)][yaml_is_sexy['items'].index(item)%6] != 0 and buy_value_temp > money:
                             status_store[yaml_is_sexy['items'].index(item)] = 1
                         else:
                             status_store[yaml_is_sexy['items'].index(item)] = 0
@@ -280,18 +280,20 @@ def counter(): #this function will have to change a bit once the icons are in, i
                         pass
     for i in pos_order:
         for j in range(len(yaml_is_sexy['store']['smallsquares']['positions'][i])):
-            if buy_list[pos_order.index(i)][j] != 0 and status_store[pos_order.index(i)*6+j] != 1:
+            if buy_list[pos_order.index(i)][j] != 0 and status_store[pos_order.index(i)*6+j] == 2:
                 counts_store_s[yaml_is_sexy['items'].index(yaml_is_sexy['item_types'][i][j])] = storefont.render(str(buy_list[pos_order.index(i)][j]), 1, (0,255,0))
+            elif buy_list[pos_order.index(i)][j] != 0 and status_store[pos_order.index(i)*6+j] == 1:
+                counts_store_s[yaml_is_sexy['items'].index(yaml_is_sexy['item_types'][i][j])] = storefont.render(str(buy_list[pos_order.index(i)][j]), 1, (255,0,0)) 
         for i in pos_order:
             for j in range(len(yaml_is_sexy['store']['smallsquares']['positions'][i])):
-                if yaml_is_sexy['items'][pos_order.index(i)*6+j] in store_dict and buy_list[pos_order.index(i)][j] != 0:
-                    try:
-                        text_offset = (-counts_store_s[pos_order.index(i)*6+j].get_width(),-counts_store_s[pos_order.index(i)*6+j].get_height())
-                        padding = tuple(map(add, text_offset, (-10,-120)))
-                        icon_pos = tuple(map(add, yaml_is_sexy['store']['smallsquares']['positions'][i][j], yaml_is_sexy['store']['smallsquares']['size']))
-                        screen_render.blit(counts_store_s[pos_order.index(i)*6+j], tuple(map(add, icon_pos, padding)))
-                    except:
-                        pass
+                if yaml_is_sexy['items'][pos_order.index(i)*6+j] in store_dict and status_store[pos_order.index(i)*6+j] != 0:
+                        try:
+                            text_offset = (-counts_store_s[pos_order.index(i)*6+j].get_width(),-counts_store_s[pos_order.index(i)*6+j].get_height())
+                            padding = tuple(map(add, text_offset, (-10,-120)))
+                            icon_pos = tuple(map(add, yaml_is_sexy['store']['smallsquares']['positions'][i][j], yaml_is_sexy['store']['smallsquares']['size']))
+                            screen_render.blit(counts_store_s[pos_order.index(i)*6+j], tuple(map(add, icon_pos, padding)))
+                        except:
+                            pass
 
 def mouse_check(mouse_pos):
     #print mouse_pos[0], mouse_pos[1]
