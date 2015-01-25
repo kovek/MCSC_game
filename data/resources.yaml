@@ -17,7 +17,7 @@ RagdollBoss:
   sprite_size: [20,40]
 
 Punch:
-  box_size: [10, 10, 10]
+  box_size: [20, 20, 20]
   box_offset: [0, 0, 0]
 
 GUI:

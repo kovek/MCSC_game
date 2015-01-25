@@ -564,7 +564,7 @@ class Punch(Entity):
         physics.position = position
 
         self.components = {
-            'timeout': Timeout(self, 300, destroy_self),
+            'timeout': Timeout(self, 0, destroy_self),
             'collision': Collision(self, "punch"),
             'physics': physics
         }

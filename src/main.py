@@ -42,7 +42,7 @@ sun = classes.Star()
 boss = classes.RagdollBoss()
 
 import random
-for i in range(10):
+for i in range(4):
     bossi = classes.RagdollBoss()
     x = random.random()*200.0
     y = random.random()*200.0
