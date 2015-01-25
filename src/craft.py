@@ -80,9 +80,10 @@ def update_screen():
                 screen_render.blit(small_no, tuple(yaml_is_sexy['craftstore']['smallsquares']['positions'][i][j]))
     for i in range(len(yaml_is_sexy['craft']['text'])):
         screen_render.blit(texts[i], yaml_is_sexy['craft']['text'][text_list[i]]['positions'])
-    counter()
     outlines()
+    counter()
     screen_final = pygame.transform.smoothscale(screen_render, display_res)
+    screen_render.fill((0,0,0))
     screen.blit(screen_final,(0,0))
     pygame.display.flip()
     
@@ -166,18 +167,14 @@ def counter(): #this function will have to change a bit once the icons are in, i
 # here will be implemented a function that blits the item sprites
 
 def outlines():
-    
     for i in range(len(yaml_is_sexy['craft']['largesquares']['positions'])):
         if item_qty[i] != 0:
             for item in type_dict[i]:
                 if item != item_type[i]:
-                    if type_dict[i][item] in qty_dict:
                         status[i*6+item-1] = 1
         else:
             for item in type_dict[i]:
-                if type_dict[i][item] in qty_dict:
                     status[i*6+item-1] = 2
-
     for item in yaml_is_sexy['items']:
         try:
             qty_dict[item]
@@ -189,7 +186,7 @@ def outlines():
             elif qty_dict[item] != 0:
                 pass
     for i in pos_order:
-        for j in  range(len(yaml_is_sexy['craftstore']['smallsquares']['positions'][i])):
+        for j in range(len(yaml_is_sexy['craftstore']['smallsquares']['positions'][i])):
             if status[pos_order.index(i)*6+j] == 2:
                 screen_render.blit(small_yes, tuple(yaml_is_sexy['craftstore']['smallsquares']['positions'][i][j]))
             elif status[pos_order.index(i)*6+j] == 1:
