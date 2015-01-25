@@ -37,8 +37,8 @@ print type_dict
 
 item_type = [0,0,0,0,0]
 item_qty = [0,0,0,0,0]
-item_dict = {(4,1,3,1) : 'pistol', (4,2,3,1): 'shotgun', (4,3,3,1): 'potato launcher'}
-crafting_tuples = [(),(),(),(),()]
+item_dict = {(4,1,3,1,0,0,0,0,0,0) : 'pistol', (4,2,3,1,0,0,0,0,0,0): 'shotgun', (4,3,3,1,0,0,0,0,0,0): 'potato launcher'}
+crafting_tuples = [(0,0),(0,0),(0,0),(0,0),(0,0)]
 crafting_tuple_final = ()
 crafting_results = []
 crafting = True
@@ -86,7 +86,24 @@ def update_screen():
     screen_render.fill((0,0,0))
     screen.blit(screen_final,(0,0))
     pygame.display.flip()
-    
+
+def craft():
+    global crafting_tuple_final, crafting_tuples
+    print "crafting finished, result:"
+    for i in range(5):
+        crafting_tuple_final += crafting_tuples[i]
+    if crafting_tuple_final in item_dict:
+        print item_dict[crafting_tuple_final]
+        crafting_results.append(item_dict[crafting_tuple_final])
+        for i in range(len(yaml_is_sexy['craft']['largesquares']['positions'])):
+            item_type[i] = 0
+            item_qty[i] = 0
+    else:
+        print "none"
+    crafting_tuples = [(0,0) for i in range(5)]
+    crafting_tuple_final = ()
+    print crafting_results
+  
 def potater (index, typeof_item):
     try:
         qty_dict[type_dict [index][typeof_item]] 
@@ -228,17 +245,5 @@ while crafting:
                     else:
                         pass
                 elif len(which_rect) == 0:
-                    print "crafting finished, result:"
-                    for i in range(5):
-                        crafting_tuple_final += crafting_tuples[i]
-                    if crafting_tuple_final in item_dict:
-                        for i in range(len(yaml_is_sexy['craft']['largesquares']['positions'])):
-                            item_type[i] = 0
-                            item_qty[i] = 0
-                        print item_dict[crafting_tuple_final]
-                        crafting_results.append(item_dict[crafting_tuple_final])
-                    else:
-                        print "none"
-                    crafting_tuple_final = ()
-                    print crafting_results
+                    craft()
                     
