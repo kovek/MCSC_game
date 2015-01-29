@@ -4,6 +4,7 @@ import classes
 import yaml
 import guiclasses
 from constants import *
+import levels
 
 
 class Game(object):
@@ -20,7 +21,8 @@ class Game(object):
         cls.guiclasses = guiclasses
 
         # set up pygame and init
-        pygame.init()
+        cls.pygame = pygame
+        cls.pygame.init()
 
         # Set up the window
         cls.screen = pygame.display.set_mode(
@@ -55,10 +57,11 @@ class Game(object):
 
                 guiclasses.PlayingGUI.tick()
 
-                classes.Conditions.tick()
+                #classes.ConditionsManager.tick()
 
             pygame.display.update()
 
 Game.init()
+levels.Level1.init(Game)
 Game.run()
 

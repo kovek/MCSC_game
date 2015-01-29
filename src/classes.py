@@ -257,7 +257,7 @@ class CollisionsManager(System):
                 # possible?
                 # Check if the hitboxes intersect
 
-                collision_string = component.parent.name + '_with_' + item.parent.name
+                collision_string = component.parent.__class__.__name__ + '_with_' + item.parent.__class__.__name__
                 if collision_string not in dir(CollisionsPossible):
                     #print collision_string
                     continue
@@ -285,7 +285,7 @@ class CollisionsManager(System):
 
 
             for item in list_of_colliding_with_component:
-                fn = CollisionsPossible.collision(component.parent.name, item.parent.name)
+                fn = CollisionsPossible.collision(component.parent.__class__.__name__, item.parent.__class__.__name__)
                 if type(fn) is not type(None):
                     fn(component.parent, item.parent)
 
@@ -525,9 +525,8 @@ class Entity(object):
 
 class Render(Component):
     """ Component needed to draw a character or boss. """
-    def __init__(self, parent, source):
+    def __init__(self, parent):
         self.parent = parent
-        self.source = source
         self.scaled_size = self.parent.sprite_size
         self.image = pygame.image.load(os.path.join(*self.parent.spritesheet_file))
         self.which_frame = 0
@@ -554,9 +553,8 @@ class Bunch(object):
 
 import itertools
 class Collision(Component):
-    def __init__(self, parent, source):
+    def __init__(self, parent):
         self.parent = parent
-        self.source = source
         self.points = [[0,0,0] for i in xrange(8)]
         self.bounds = Bunch()
         self.bounds.x = [0,0]
@@ -570,7 +568,6 @@ class Collision(Component):
 class Punch(Entity):
     def __init__(self, parent):
         self.parent = parent
-        self.name = "Punch"
 
         def destroy_self(self=self):
             for key, val in self.parent.components.iteritems():
@@ -590,36 +587,7 @@ class Punch(Entity):
 
         self.components = {
             'timeout': Timeout(self, 0, destroy_self),
-            'collision': Collision(self, "punch"),
-            'physics': physics
-        }
-
-        #self.components['collision'].position += [direction*offset, height, 0]
-
-class Punch(Entity):
-    def __init__(self, parent):
-        self.parent = parent
-        self.name = "Punch"
-
-        def destroy_self(self=self):
-            for key, val in self.parent.components.iteritems():
-                if val is self:
-                    del self.parent[key]
-            CollisionsManager.components.remove(self.components['collision'])
-            del self.components['collision']
-            del self
-
-        position = copy(self.parent.components['physics'].position)
-        direction_facing = 1
-        position[0] += direction_facing * parent.box_size[0]/2.0
-        position[1] += parent.box_size[1]-10.0
-
-        physics = Component()
-        physics.position = position
-
-        self.components = {
-            'timeout': Timeout(self, 0, destroy_self),
-            'collision': Collision(self, "punch"),
+            'collision': Collision(self),
             'physics': physics
         }
 
@@ -698,13 +666,12 @@ class FightingStats(Component):
 class Warrior(Entity):
     def __init__(self):
         position = [0,0,0]
-        self.name = "Warrior"
 
         self.components = {
             'physics': Physics(self, position),
-            'collision': Collision(self, "Warrior"),
+            'collision': Collision(self),
             'controls': Controls(self),
-            'render': Render(self, "Warrior"),
+            'render': Render(self),
             'shadow': Shadow(self, "player"),
             'stats': FightingStats(self)
         }
@@ -720,14 +687,25 @@ class Assassin(Entity):
             'render': Render("Assassin")
         }
 
+
 class RagdollBoss(Entity):
     def __init__(self):
-        self.name = "RagdollBoss"
         position = [50,0,50]
         self.components = {
             'physics': Physics(self, position),
-            'collision': Collision(self, "RagdollBoss"),
-            'render': Render(self, "RagdollBoss"),
+            'collision': Collision(self),
+            'render': Render(self),
+            'shadow': Shadow(self, "player"),
+            'stats': FightingStats(self),
+        }
+
+class RobotBoss(Entity):
+    def __init__(self):
+        position = [50,0,50]
+        self.components = {
+            'physics': Physics(self, position),
+            'collision': Collision(self),
+            'render': Render(self),
             'shadow': Shadow(self, "player"),
             'stats': FightingStats(self),
         }

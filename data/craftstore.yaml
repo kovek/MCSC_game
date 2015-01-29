@@ -1,30 +1,63 @@
 craft:
     largesquares:
         img: ['..','data','craftstore','largesquare.png']
+        size: [350,350]
         positions: [[100,540],[500,540],[900,540],[1300,540],[1700,540]]
     buttons:
         img: ['..','data','craftstore','button.png']
+        size: [500,200]
         positions: [850,950]
-
+    text:
+        craftingstation:
+            img: ['..', 'data','craftstore','craftingstation.png']
+            size: [500,200]
+            positions: [500, 1000]
+        craftbutton:
+            img: ['..', 'data','craftstore','craftbutton.png']
+            size: [500,200]
+            positions: [850,950]
+        blueprints:
+            img: ['..', 'data','craftstore','blueprints.png']
+            size: [500,200]
+            positions: [3300, 1000]
 store:
     smallsquares:
         img: ['..','data','craftstore','smallsquare.png']
+        size: [180,180]
         positions:
             metal: [[295,400],[295,600],[295,800],[565,400],[565,600],[565,800]]
-            gems: [[995,400],[995,600],[995,800],[1265,400],[1265,600],[1265,800]]
+            gem: [[995,400],[995,600],[995,800],[1265,400],[1265,600],[1265,800]]
             potato: [[1695,400],[1695,600],[1695,800],[1965,400],[1965,600],[1965,800]]
             tomato: [[2395,400],[2395,600],[2395,800],[2665,400],[2665,600],[2665,800]]
             science: [[3095,400],[3095,600],[3095,800],[3365,400],[3365,600],[3365,800]]
     buttons:
-        img: ['..','data','craftstore','button.png']
-        positions: [[1070,1150],[1670,1150],[2270,1150]]
+        img: ['..', 'data', 'craftstore', 'button.png']
+        size: [500, 200]
+        positions: [[1070, 1150], [1670, 1150], [2270, 1150]]
+    prices: [10,25,50,100,250,500,50,150,300,500,1000,2500,10,25,50,250,750,2500,25,100,250,750,1500,10,500,1000,2500,5000,10000,25000]
 
 craftstore:
     smallsquares:
-        img: ['..','data','craftstore','smallsquare.png']
+        img: ['..', 'data', 'craftstore', 'smallsquare.png']
+        size: [180, 180]
         positions:
-            metal: [[295,1500],[295,1700],[295,1900],[565,1500],[565,1700],[565,1900]]
-            gem: [[995,1500],[995,1700],[995,1900],[1265,1500],[1265,1700],[1265,1900]]
-            potato: [[1695,1500],[1695,1700],[1695,1900],[1965,1500],[1965,1700],[1965,1900]]
-            tomato: [[2395,1500],[2395,1700],[2395,1900],[2665,1500],[2665,1700],[2665,1900]]
-            science: [[3095,1500],[3095,1700],[3095,1900],[3365,1500],[3365,1700],[3365,1900]]
+            metal: [[295, 1500],[295, 1700],[295, 1900], [565, 1500], [565, 1700], [565, 1900]]
+            gem: [[995, 1500], [995, 1700], [995, 1900], [1265, 1500], [1265, 1700], [1265, 1900]]
+            potato: [[1695, 1500], [1695, 1700], [1695, 1900], [1965, 1500], [1965, 1700], [1965, 1900]]
+            tomato: [[2395, 1500], [2395, 1700], [2395, 1900], [2665, 1500], [2665, 1700], [2665, 1900]]
+            science: [[3095, 1500], [3095, 1700], [3095, 1900], [3365, 1500], [3365, 1700], [3365, 1900]]
+    yeah:
+        img: ['..', 'data', 'craftstore', 'smallyes.png']
+    nope:
+        img: ['..', 'data', 'craftstore', 'smallno.png']
+
+item_types:
+    metal: ['Lead', 'Aluminum', 'Steel', 'Copper', 'Gold', 'Uranium']
+    gem: ['Amber', 'Amethyst', 'Ruby', 'Emerald', 'Sapphire', 'Diamond']
+    potato: ['Russet', 'Yukon Gold', 'Red Potato', 'White Potato', 'Purple Potato', 'Starch Condenser']
+    tomato: ['Tomato Seeds', 'Baby Tomato', 'Green Tomato', 'Yellow Tomato', 'Red Tomato', 'Rotten Tomato']
+    science: ['Social Sciences', 'Botanics', 'Biology', 'Chemistry', 'Mechanics', 'Particle Physics']
+
+item_icons:
+    img: ['..', 'data', 'sprites', 'items','items.png']
+    size: [2500, 2500]
