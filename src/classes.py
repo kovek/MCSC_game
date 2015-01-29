@@ -18,7 +18,7 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
-PI = 3.141592652
+PI = 3.14159265
 
 # variables for target framerate, milliseconds per animation frame,jump speed of character, and time for 1 day (in ms = 6 min)
 FRAMES_PER_SECOND = 100
