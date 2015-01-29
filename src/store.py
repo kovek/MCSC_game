@@ -2,7 +2,7 @@ import pygame, sys, os
 from pygame.locals import *
 import yaml
 yaml_is_sexy = yaml.load(open('../data/craftstore.yaml','r'))
-display_res = (1920,1080)
+display_res = (1440, 900)
 
 money = 500
 inv_list = [ 'Copper', 'Copper', 'Copper', 'Aluminum', 'Aluminum', 'Uranium', 'Ruby', 'Ruby', 'Emerald', 'Diamond']
@@ -73,7 +73,7 @@ def buy (item):
             print "Money remaining: ", money
             print "Your items: ", inv_dict
             print "Store items: ", store_dict
-            
+
 
 def sell(item):
     global money
@@ -93,7 +93,7 @@ def sell(item):
             print "Money remaining: ", money
             print "Your items: ", inv_dict
             print "Store items: ", store_dict
-                
+
 
 while shopping:
     for event in pygame.event.get():
@@ -111,4 +111,4 @@ print "Finished shopping!"
 print "Money remaining: ", money
 print "Your items: ", inv_dict
 print "Store items: ", store_dict
-            
+

@@ -3,7 +3,7 @@ import pygame, sys, os
 from pygame.locals import *
 import yaml
 yaml_is_sexy = yaml.load(open('../data/craftstore.yaml','r'))
-display_res = (1920,1080)
+display_res = (1440,900)
 
 type_list = {K_1: 1, K_2 : 2, K_3 : 3, K_4 :1, K_5 : 2, K_6 : 3, K_q : 1, K_w :2, K_e : 3, K_r : 1, K_t : 2, K_y: 3}
 inv_list = [ 'Copper', 'Copper', 'Copper', 'Aluminum', 'Aluminum', 'Uranium', 'Ruby', 'Ruby', 'Emerald', 'Diamond']
@@ -40,54 +40,54 @@ screen.blit(screen_final,(0,0))
 pygame.display.flip()
 
 def potater (index):
-                if event.key in keys:
-                    if event.key in [K_1,K_2,K_3, K_q,K_w,K_e]:
-                        if my_dict[keys[event.key]] == 0:
-                                        print 'U suk no moar'
-                        else:
-                            if item_type[index] != 0 and item_qtty[index] != 0:
-                                if item_type[index] == type_list[event.key]:
-                                    item_type[index] = type_list[event.key]
-                                    item_qtty[index] += 1
-                                    my_dict[keys[event.key]] -= 1
-                                    print keys[event.key], "added, total amount:", item_qtty[index]
-                                    print 'amount left:', my_dict[keys[event.key]]
-                                else:
-                                    print 'Cannot add different material', 'Your crafting inventory:'
-                                    print item_type , item_qtty
-                            else:
-                                item_type[index] = type_list[event.key]
-                                item_qtty[index] += 1
-                                my_dict[keys[event.key]] -= 1
-                                print keys[event.key], "added, total amount:", item_qtty[index]
-                                print 'amount left:', my_dict[keys[event.key]]
+    if event.key in keys:
+        if event.key in [K_1,K_2,K_3, K_q,K_w,K_e]:
+            if my_dict[keys[event.key]] == 0:
+                            print 'U suk no moar'
+            else:
+                if item_type[index] != 0 and item_qtty[index] != 0:
+                    if item_type[index] == type_list[event.key]:
+                        item_type[index] = type_list[event.key]
+                        item_qtty[index] += 1
+                        my_dict[keys[event.key]] -= 1
+                        print keys[event.key], "added, total amount:", item_qtty[index]
+                        print 'amount left:', my_dict[keys[event.key]]
+                    else:
+                        print 'Cannot add different material', 'Your crafting inventory:'
+                        print item_type , item_qtty
+                else:
+                    item_type[index] = type_list[event.key]
+                    item_qtty[index] += 1
+                    my_dict[keys[event.key]] -= 1
+                    print keys[event.key], "added, total amount:", item_qtty[index]
+                    print 'amount left:', my_dict[keys[event.key]]
 
-                    elif event.key in [K_4,K_5,K_6,K_r,K_t,K_y]:
-                        if item_qtty[index] == 0:
-                            print 'stahp exploit'
-                        else:
-                            if item_type[index] != 0 and item_qtty[index] != 0:
-                                if item_type[index] == type_list[event.key]:
-                                    item_type[index] = type_list [event.key]
-                                    item_qtty[index] -= 1 
-                                    my_dict[keys[event.key]] +=1
-                                    if item_qtty[index] < 0:
-                                        item_qtty[index] = 0
-                                    print keys[event.key], "removed, total amount", item_qtty[index]
-                                    print 'amount left:', my_dict[keys[event.key]]
-                                else:
-                                    print 'Cannot remove different material', 'Your crafting inventory:'
-                                    print item_type , item_qtty
-                            else:
-                                item_type[index] = type_list [event.key]
-                                item_qtty[index] -= 1 
-                                my_dict[keys[event.key]] +=1
-                                if item_qtty[index] < 0:
-                                    item_qtty[index] = 0
-                                print keys[event.key], "removed, total amount", item_qtty[index]
-                                print 'amount left:', my_dict[keys[event.key]]
-                return (item_type[index],item_qtty[index])
-                    
+        elif event.key in [K_4,K_5,K_6,K_r,K_t,K_y]:
+            if item_qtty[index] == 0:
+                print 'stahp exploit'
+            else:
+                if item_type[index] != 0 and item_qtty[index] != 0:
+                    if item_type[index] == type_list[event.key]:
+                        item_type[index] = type_list [event.key]
+                        item_qtty[index] -= 1
+                        my_dict[keys[event.key]] +=1
+                        if item_qtty[index] < 0:
+                            item_qtty[index] = 0
+                        print keys[event.key], "removed, total amount", item_qtty[index]
+                        print 'amount left:', my_dict[keys[event.key]]
+                    else:
+                        print 'Cannot remove different material', 'Your crafting inventory:'
+                        print item_type , item_qtty
+                else:
+                    item_type[index] = type_list [event.key]
+                    item_qtty[index] -= 1
+                    my_dict[keys[event.key]] +=1
+                    if item_qtty[index] < 0:
+                        item_qtty[index] = 0
+                    print keys[event.key], "removed, total amount", item_qtty[index]
+                    print 'amount left:', my_dict[keys[event.key]]
+    return (item_type[index],item_qtty[index])
+
 while crafting:
     for event in pygame.event.get():
         if event.type == KEYDOWN:

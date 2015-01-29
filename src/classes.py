@@ -214,7 +214,6 @@ class CollisionsManager(System):
 
     @classmethod
     def tick(cls):
-        print 'checking collisions'
         list_of_checked_component_pairs = []
 
         for component in cls.components:
@@ -223,12 +222,12 @@ class CollisionsManager(System):
             offset = component.parent.box_offset
             bounds = component.parent.box_size
 
-            component.x_bounds[0] = position[0] - bounds[0]/2.0 + offset[0] * bounds[0]
-            component.x_bounds[1] = position[0] + bounds[0]/2.0 + offset[0] * bounds[0]
-            component.y_bounds[0] = position[1] - bounds[1]/2.0 + offset[1] * bounds[1]
-            component.y_bounds[1] = position[1] + bounds[1]/2.0 + offset[1] * bounds[1]
-            component.z_bounds[0] = position[2] - bounds[2]/2.0 + offset[2] * bounds[2]
-            component.z_bounds[1] = position[2] + bounds[2]/2.0 + offset[2] * bounds[2]
+            component.bounds.x[0] = position[0] - bounds[0]/2.0 + offset[0] * bounds[0]
+            component.bounds.x[1] = position[0] + bounds[0]/2.0 + offset[0] * bounds[0]
+            component.bounds.y[0] = position[1] - bounds[1]/2.0 + offset[1] * bounds[1]
+            component.bounds.y[1] = position[1] + bounds[1]/2.0 + offset[1] * bounds[1]
+            component.bounds.z[0] = position[2] - bounds[2]/2.0 + offset[2] * bounds[2]
+            component.bounds.z[1] = position[2] + bounds[2]/2.0 + offset[2] * bounds[2]
 
             # Completely just for debugging purposes
             lines = [(0,5), (0,6), (4,6), (4,5), (0,2), (6,3), (5,7), (4,1), (3,1), (3,2), (7,2), (7,1)]
@@ -244,6 +243,9 @@ class CollisionsManager(System):
         for component in cls.components:
             list_of_colliding_with_component = []
 
+            if isinstance(component.parent, Punch):
+                pass
+                #pdb.set_trace()
             for item in cls.components:
                 if item is component:
                     continue
@@ -254,15 +256,33 @@ class CollisionsManager(System):
                 # Make sure to check if collisions between the two Entities are
                 # possible?
                 # Check if the hitboxes intersect
-                if component.x_bounds[0] <= item.x_bounds[0] <= component.x_bounds[1]\
-                or component.x_bounds[0] <= item.x_bounds[1] <= component.x_bounds[1]:
-                    if component.y_bounds[0] <= item.y_bounds[0] <= component.y_bounds[1]\
-                    or component.y_bounds[0] <= item.y_bounds[1] <= component.y_bounds[1]:
-                        if component.z_bounds[0] <= item.z_bounds[0] <= component.z_bounds[1]\
-                        or component.z_bounds[0] <= item.z_bounds[1] <= component.z_bounds[1]:
-                            if isinstance(item.parent, Punch) or isinstance(component.parent, Punch):
-                                print 'here'
-                            list_of_colliding_with_component.append(item)
+
+                collision_string = component.parent.name + '_with_' + item.parent.name
+                if collision_string not in dir(CollisionsPossible):
+                    #print collision_string
+                    continue
+
+                def check():
+                    if component.bounds.x[0] <= item.bounds.x[0] <= component.bounds.x[1]\
+                    or component.bounds.x[0] <= item.bounds.x[1] <= component.bounds.x[1]:
+                        if component.bounds.y[0] <= item.bounds.y[0] <= component.bounds.y[1]\
+                        or component.bounds.y[0] <= item.bounds.y[1] <= component.bounds.y[1]:
+                            if component.bounds.z[0] <= item.bounds.z[0] <= component.bounds.z[1]\
+                            or component.bounds.z[0] <= item.bounds.z[1] <= component.bounds.z[1]:
+                                if isinstance(item.parent, Punch) or isinstance(component.parent, Punch):
+                                    pass
+                                    #print 'here'
+                                list_of_colliding_with_component.append(item)
+                check()
+                temp = copy(component.bounds)
+                component.bounds = item.bounds
+                item.bounds = temp
+                check()
+                temp = copy(component.bounds)
+                component.bounds = item.bounds
+                item.bounds = temp
+
+
 
             for item in list_of_colliding_with_component:
                 fn = CollisionsPossible.collision(component.parent.name, item.parent.name)
@@ -529,15 +549,19 @@ class Physics(Component):
 
         PhysicsManager.components.add(self)
 
+class Bunch(object):
+    pass
+
 import itertools
 class Collision(Component):
     def __init__(self, parent, source):
         self.parent = parent
         self.source = source
         self.points = [[0,0,0] for i in xrange(8)]
-        self.x_bounds = [0,0]
-        self.y_bounds = [0,0]
-        self.z_bounds = [0,0]
+        self.bounds = Bunch()
+        self.bounds.x = [0,0]
+        self.bounds.y = [0,0]
+        self.bounds.z = [0,0]
         self.box_size = self.parent.box_size
 
         CollisionsManager.components.add(self)
@@ -546,6 +570,36 @@ class Collision(Component):
 class Punch(Entity):
     def __init__(self, parent):
         self.parent = parent
+        self.name = "Punch"
+
+        def destroy_self(self=self):
+            for key, val in self.parent.components.iteritems():
+                if val is self:
+                    del self.parent[key]
+            CollisionsManager.components.remove(self.components['collision'])
+            del self.components['collision']
+            del self
+
+        position = copy(self.parent.components['physics'].position)
+        direction_facing = 1
+        position[0] += direction_facing * parent.box_size[0]/2.0
+        position[1] += parent.box_size[1]-10.0
+
+        physics = Component()
+        physics.position = position
+
+        self.components = {
+            'timeout': Timeout(self, 0, destroy_self),
+            'collision': Collision(self, "punch"),
+            'physics': physics
+        }
+
+        #self.components['collision'].position += [direction*offset, height, 0]
+
+class Punch(Entity):
+    def __init__(self, parent):
+        self.parent = parent
+        self.name = "Punch"
 
         def destroy_self(self=self):
             for key, val in self.parent.components.iteritems():
@@ -580,10 +634,10 @@ class CollisionsPossibleClass(object):
         key = str(one) + '_with_' + str(two)
         second_key = str(two) + '_with_' + str(one)
 
-        if isinstance(one, Punch) or isinstance(two, Punch):
-            pdb.set_trace()
+        if one == "Punch" or two == "Punch":
             print 'here'
 
+        print key
         if key in dir(self):
             return self[key]
 
@@ -675,7 +729,7 @@ class RagdollBoss(Entity):
             'collision': Collision(self, "RagdollBoss"),
             'render': Render(self, "RagdollBoss"),
             'shadow': Shadow(self, "player"),
-            'stats': FightingStats(self)
+            'stats': FightingStats(self),
         }
 
 
