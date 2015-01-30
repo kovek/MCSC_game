@@ -5,7 +5,7 @@ import yaml
 import pdb
 from operator import add
 yaml_is_sexy = yaml.load(open('../data/craftstore.yaml','r'))
-display_res = (1440, 800)
+display_res = (1920, 1080)
 factor = (float(display_res[0])/3840.0,float(display_res[1])/2160.0)
 pos = []
 pos_order = ['metal','gem','potato','tomato','science']

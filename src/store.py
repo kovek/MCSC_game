@@ -4,7 +4,7 @@ import yaml
 import pdb
 from operator import add
 yaml_is_sexy = yaml.load(open('../data/craftstore.yaml','r'))
-display_res = (1440,800)
+display_res = (1920,1080)
 factor = (float(display_res[0])/3840.0,float(display_res[1])/2160.0)
 pos = []
 pos_order = ['metal','gem','potato','tomato','science']
@@ -108,8 +108,8 @@ def update_screen():
 
 def buy():
     global money, buy_value, buy_list
-    fi buy_value != 0
-    buy_value = 0
+    if buy_value != 0:
+        buy_value = 0
     for i in range(len(buy_list)):
         for j in range(len(buy_list[i])):
             buy_value += buy_list[i][j]*prices_dict[i][j+1]
