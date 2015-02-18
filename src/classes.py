@@ -168,6 +168,33 @@ class RenderManager(System):
                 point_on_screen[1]-dimensions[1]*offset[1])
         )
 
+class AIManager(System):
+    @classmethod
+    def which_direction(player_pos,boss_pos):
+        if player_pos[0] == boss_pos[0] and player_pos[2] < boss_pos[2]:
+            dir = 0
+        elif player_pos[0] < boss_pos[0] and player_pos[2] < boss_pos[2]:
+            dir = 1
+        elif player_pos[0] < boss_pos[0] and player_pos[2] == boss_pos[2]:
+            dir = 2
+        elif player_pos[0] < boss_pos[0] and player_pos[2] > boss_pos[2]:
+            dir = 3
+        elif player_pos[0] == boss_pos[0] and player_pos[2] > boss_pos[2]:
+            dir = 4
+        elif player_pos[0] > boss_pos[0] and player_pos[2] > boss_pos[2]:
+            dir = 5
+        elif player_pos[0] > boss_pos[0] and player_pos[2] == boss_pos[2]:
+            dir = 6
+        elif player_pos[0] > boss_pos[0] and player_pos[2] < boss_pos[2]:
+            dir = 7
+        return dir
+
+    def tick(cls):
+        for component in cls.components:
+            component.movement = which_direction(player.components['physics'].position,boss.components['physics'].position)
+            print component.movement
+            
+            
 
 class PhysicsManager(System):
     """ Manage the Physics of the components. Change their position depending
@@ -551,6 +578,17 @@ class Physics(Component):
 class Bunch(object):
     pass
 
+class AI(Component):
+    """ Component for AI, intelligence is some int determining how "smart" this boss is at attacking, dodging"""
+    def __init__(self, parent, intelligence):
+        self.parent = parent
+        self.intelligence = intelligence
+        self.movement = 0
+        self.attack = 0
+        
+        AIManager.components.add(self)
+        
+
 import itertools
 class Collision(Component):
     def __init__(self, parent):
@@ -708,6 +746,7 @@ class RobotBoss(Entity):
             'render': Render(self),
             'shadow': Shadow(self, "player"),
             'stats': FightingStats(self),
+            'ai': AI(self,0)
         }
 
 
