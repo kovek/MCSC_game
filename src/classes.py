@@ -10,7 +10,7 @@ import random
 import yaml
 import copy
 import pdb
-import bench
+#import bench
 
 # Set up pygame, random number generator, font, colors and math constants
 pygame.init()
@@ -113,6 +113,33 @@ class RenderManager(System):
                 (point_on_screen[0]-dimensions[0]*offset[0], point_on_screen[1]-dimensions[1]*offset[1])
         )
 
+class AIManager(System):
+    components = set([])
+    @classmethod
+    def which_direction(player_pos,boss_pos):
+        if player_pos[0] == boss_pos[0] and player_pos[2] < boss_pos[2]:
+            dir = 0
+        elif player_pos[0] < boss_pos[0] and player_pos[2] < boss_pos[2]:
+            dir = 1
+        elif player_pos[0] < boss_pos[0] and player_pos[2] == boss_pos[2]:
+            dir = 2
+        elif player_pos[0] < boss_pos[0] and player_pos[2] > boss_pos[2]:
+            dir = 3
+        elif player_pos[0] == boss_pos[0] and player_pos[2] > boss_pos[2]:
+            dir = 4
+        elif player_pos[0] > boss_pos[0] and player_pos[2] > boss_pos[2]:
+            dir = 5
+        elif player_pos[0] > boss_pos[0] and player_pos[2] == boss_pos[2]:
+            dir = 6
+        elif player_pos[0] > boss_pos[0] and player_pos[2] < boss_pos[2]:
+            dir = 7
+        return dir
+    @classmethod
+    def tick(cls):
+        for component in cls.components:
+            component.movement = AIManager.which_direction(player.components['physics'].position,boss.components['physics'].position)
+            #component.movement = AIManager.which_direction(Warrior.components['physics'].position,RagdollBoss.components['physics'].position)
+            print component.movement
 
 class PhysicsManager(System):
     components = set([])
@@ -404,6 +431,17 @@ class Physics(object):
 
         PhysicsManager.components.add(self)
 
+class AI(object):
+    """ Component for AI, intelligence is some int determining how "smart" this boss is at attacking, dodging"""
+    def __init__(self, parent, intelligence):
+        self.parent = parent
+        self.intelligence = intelligence
+        self.movement = 0
+        self.attack = 0
+        
+        AIManager.components.add(self)
+        
+
 import itertools
 class Collision(object):
 	def __init__(self, parent, source):
@@ -525,6 +563,7 @@ class RagdollBoss(Entity):
             'collision': Collision(self, "RagdollBoss"),
             'render': Render(self, "RagdollBoss"),
             'shadow': Shadow(self, "player"),
+            'ai': AI(self,0)
         }
 
 

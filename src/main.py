@@ -137,6 +137,7 @@ while True:
         print "tick"
         classes.PhysicsManager.tick()
         classes.ControlsManager.tick()
+        classes.AIManager.tick()
         classes.StarManager.tick()
 
         # Draw things
