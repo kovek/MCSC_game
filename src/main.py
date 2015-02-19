@@ -99,7 +99,7 @@ BLACK = (0, 0, 0)
 
 # initialization of every element of the game (player, enemies, gui items)
 ###this should be moved to some other class eventually
-player = classes.Warrior()
+player = classes.active_player
 player.components['controls'].pygame = pygame
 
 #health_bar = guiclasses.GUIItem('health')
@@ -109,9 +109,9 @@ sun = classes.Star()
 
 bosses = []
 import random
-boss = classes.RagdollBoss()
+boss = classes.active_boss
 #boss.components['physics'].position = [0,0,0]
-for i in xrange(50):
+for i in xrange(0):
     bosses.append(classes.RagdollBoss())
     x = (random.random()-0.5)*200.0
     y = random.random()*200.0

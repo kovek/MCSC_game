@@ -12,6 +12,21 @@ import copy
 import pdb
 #import bench
 
+
+# This is the shadow class for various shadows
+class Shadow(object):
+    def __init__(self, owner, owner_string):
+        self.shadow_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'shadows', owner_string+'_shadow.png'))
+        self.owner = owner
+        self.height = owner.sprite_size[0]/4
+        ShadowManager.components.add(self)
+
+class Gamestate(object):
+    def __init__(self,player,boss):
+        self.player=player
+        self.boss=boss
+
+
 # Set up pygame, random number generator, font, colors and math constants
 pygame.init()
 pygame.font.init()
@@ -116,30 +131,57 @@ class RenderManager(System):
 class AIManager(System):
     components = set([])
     @classmethod
-    def which_direction(player_pos,boss_pos):
-        if player_pos[0] == boss_pos[0] and player_pos[2] < boss_pos[2]:
-            dir = 0
+    def which_direction(cls,player_pos,boss_pos):
+        if abs(player_pos[0]-boss_pos[0])<10 and abs(player_pos[2]-boss_pos[2])<10:
+            dir = (0,0,0)
+        elif player_pos[0] == boss_pos[0] and player_pos[2] < boss_pos[2]:
+            dir = (0,0,-1)
         elif player_pos[0] < boss_pos[0] and player_pos[2] < boss_pos[2]:
-            dir = 1
+            dir = (-1,0,-1)
         elif player_pos[0] < boss_pos[0] and player_pos[2] == boss_pos[2]:
-            dir = 2
+            dir = (-1,0,0)
         elif player_pos[0] < boss_pos[0] and player_pos[2] > boss_pos[2]:
-            dir = 3
+            dir = (-1,0,1)
         elif player_pos[0] == boss_pos[0] and player_pos[2] > boss_pos[2]:
-            dir = 4
+            dir = (0,0,1)
         elif player_pos[0] > boss_pos[0] and player_pos[2] > boss_pos[2]:
-            dir = 5
+            dir = (1,0,1)
         elif player_pos[0] > boss_pos[0] and player_pos[2] == boss_pos[2]:
-            dir = 6
+            dir = (1,0,0)
         elif player_pos[0] > boss_pos[0] and player_pos[2] < boss_pos[2]:
-            dir = 7
+            dir = (1,0,-1)
         return dir
     @classmethod
+    def which_attack(cls,player_pos,boss_pos):
+        if abs(player_pos[0]-boss_pos[0])<10 and abs(player_pos[2]-boss_pos[2])<10:
+            attack = (1,)
+
+        elif abs(player_pos[0] - boss_pos[0])<10 and player_pos[2] < boss_pos[2]:
+            attack = (2,0,0,-1)
+        elif player_pos[0] < boss_pos[0] and player_pos[2] < boss_pos[2]:
+            attack = (0,)
+        elif player_pos[0] < boss_pos[0] and abs(player_pos[2] - boss_pos[2])<10:
+            attack = (2,-1,0,0)
+        elif player_pos[0] < boss_pos[0] and player_pos[2] > boss_pos[2]:
+            attack = (0,)
+        elif abs(player_pos[0] - boss_pos[0])<10 and player_pos[2] > boss_pos[2]:
+            attack = (2,0,0,1)
+        elif player_pos[0] > boss_pos[0] and player_pos[2] > boss_pos[2]:
+            attack = (0,)
+        elif player_pos[0] > boss_pos[0] and abs(player_pos[2] - boss_pos[2])<10:
+            attack = (2,1,0,0)
+        elif player_pos[0] > boss_pos[0] and player_pos[2] < boss_pos[2]:
+            attack = (0,)
+        return attack
+    @classmethod
     def tick(cls):
+        # AI movement and attack
         for component in cls.components:
-            component.movement = AIManager.which_direction(player.components['physics'].position,boss.components['physics'].position)
-            #component.movement = AIManager.which_direction(Warrior.components['physics'].position,RagdollBoss.components['physics'].position)
-            print component.movement
+            component.movement = AIManager.which_direction(gamestate.player.components['physics'].position,gamestate.boss.components['physics'].position)
+            gamestate.boss.components['physics'].velocity=component.movement
+            #print component.movement
+            component.attack = AIManager.which_attack(gamestate.player.components['physics'].position,gamestate.boss.components['physics'].position)
+            print component.attack
 
 class PhysicsManager(System):
     components = set([])
@@ -148,7 +190,7 @@ class PhysicsManager(System):
     def tick(cls):
         for component in cls.components:
             for i in xrange(3):
-                component.position[i] += component.velocity[i]
+                component.position[i] += component.velocity[i]*component.speed
 
             # Bounds of battlefield
             if component.position[0] < -250: component.position[0] = -250
@@ -226,8 +268,6 @@ class CollisionsManager(System):
                 fn = CollisionsPossible.collision(component.parent.name, item.parent.name)
                 if type(fn) is not type(None):
                     fn(component.parent, item.parent)
-
-
 
 
 class ShadowManager(System):
@@ -420,9 +460,10 @@ class Render(object):
         RenderManager.components.add(self)
 
 class Physics(object):
-    def __init__(self, parent, position, velocity=[0,0,0] ):
+    def __init__(self, parent, position, speed, velocity=[0,0,0]):
         self.parent = parent
         self.position = position
+        self.speed = speed
 
         # If we do not use copy, self.velocity will always
         # refer to the same list in memory, no matter from
@@ -438,9 +479,9 @@ class AI(object):
         self.intelligence = intelligence
         self.movement = 0
         self.attack = 0
-        
+
         AIManager.components.add(self)
-        
+
 
 import itertools
 class Collision(object):
@@ -488,14 +529,14 @@ class CollisionsPossibleClass(object):
                 [x* (k) for x in wall.direction] )
 
 	def RagdollBoss_with_Warrior(self, boss, player):
-            print "Player looks at Ragdoll awkwardly"
+            #print "Player looks at Ragdoll awkwardly"
             player.components['stats'].health -= 0.1
             if player.components['stats'].health <= 0.0:
                 player.components['stats'].health = 0.0
 
 	def RagdollBoss_with_RagdollBoss(self, boss, player):
-            print "Two ragdolls touch..."
-
+            #print "Two ragdolls touch..."
+            pass
 
 CollisionsPossible = CollisionsPossibleClass()
 
@@ -533,9 +574,10 @@ class Warrior(Entity):
     def __init__(self):
         position = [0,0,0]
         self.name = "Warrior"
+        speed = 1
 
         self.components = {
-            'physics': Physics(self, position),
+            'physics': Physics(self, position, speed),
             'collision': Collision(self, "Warrior"),
             'controls': Controls(self),
             'render': Render(self, "Warrior"),
@@ -548,8 +590,9 @@ class Assassin(Entity):
     def __init__(self, parent):
         position = (0,0,0)
         box = (2,2,2)
+        speed = 1.2
         self.components = {
-            'physics': Physics(position),
+            'physics': Physics(position, speed),
             'collision': Collision(box),
             'render': Render("Assassin")
         }
@@ -558,8 +601,9 @@ class RagdollBoss(Entity):
     def __init__(self):
         self.name = "RagdollBoss"
         position = [50,0,50]
+        speed = 0.7
         self.components = {
-            'physics': Physics(self, position),
+            'physics': Physics(self, position, speed),
             'collision': Collision(self, "RagdollBoss"),
             'render': Render(self, "RagdollBoss"),
             'shadow': Shadow(self, "player"),
@@ -586,6 +630,9 @@ class ResourcesClass(object):
         return self.data[x]
 Resources = ResourcesClass()
 
+active_player = Warrior()
+active_boss = RagdollBoss()
+gamestate = Gamestate(active_player,active_boss)
 
 class Menu(object):
     """ Basically this was supposed to hold all the different menus before
@@ -636,10 +683,4 @@ class Star(object):
         StarManager.components.add(self)
 
 
-# This is the shadow class for various shadows
-class Shadow(object):
-    def __init__(self, owner, owner_string):
-        self.shadow_image = pygame.image.load(os.path.join('..', 'data', 'sprites', 'shadows', owner_string+'_shadow.png'))
-        self.owner = owner
-        self.height = owner.sprite_size[0]/4
-        ShadowManager.components.add(self)
+        
